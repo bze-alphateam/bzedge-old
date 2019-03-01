@@ -65,8 +65,8 @@ int Equihash<N,K>::InitialiseStateEx(eh_HashState& base_state, uint32_t block_ti
 {
     const CChainParams& chainParams = Params();
     
-    LogPrintf("CURRENT bze_pers_start_blocktime = %d\n", chainParams.get_bze_pers_start());
-    LogPrintf("CURRENT block_time = %d\n", block_time);
+    LogPrint("pow", "CURRENT bze_pers_start_blocktime = %d\n", chainParams.get_bze_pers_start());
+    LogPrint("pow", "CURRENT block_time = %d\n", block_time);
     uint32_t le_N = htole32(N);
     uint32_t le_K = htole32(K);
     unsigned char personalization[crypto_generichash_blake2b_PERSONALBYTES] = {};
