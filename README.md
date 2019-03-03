@@ -1,7 +1,8 @@
+
+<img width="120" height="80" src="doc/imgs/logo.png">
 BZEdge Transylvanian Oak 2.0.3
 Checkout latest releases here: https://github.com/bze-alphateam/bzedge/releases
 
-<img align="right" width="120" height="80" src="doc/imgs/logo.png">
 
 # BZEdge
 **Keep running wallet to strengthen the BZEdge network. Backup your wallet in many locations & keep your coins wallet offline. Copy your BitcoinZ walet into BZEdge folder. BitcoinZ funds before 17 June 2018 will be duplicated on BZEdge. Replay protection: Send entire amount in each transparent address to a new address (including the free 0.1BZE). Those coins will be replay protected. To protect Z funds from replay, send your "protected" coin to the Z address, then the whole balance in one transaction to the next address.**
