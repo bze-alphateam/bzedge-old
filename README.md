@@ -55,6 +55,21 @@ cd src/
 ./bzedge-cli help "getbalance"
 ```
 
+## config file
+
+```
+daemon=1
+rpcuser=INSERT_YOUR_USER_HERE
+rpcpassword=INSERT_A_SECURE_PASSWORD_HERE
+addnode=51.15.99.37
+addnode=51.15.49.128
+addnode=104.248.95.146
+addnode=93.104.215.133
+addnode=5.189.139.227
+addnode=51.15.96.180
+```
+You can add more nodes from this list https://blocks.getbze.com/network  
+
 Security Warnings
 -----------------
 
