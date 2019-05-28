@@ -151,7 +151,7 @@ public:
 
         // The best chain should have at least this much work.
         // consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000000000000004000");
-        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000000008d730e269b84"); // chainwork of the last checkpoint
+        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000000008d89d032d11f"); // chainwork of the last checkpoint
 
 
 
@@ -204,8 +204,8 @@ public:
 		vFixedSeeds.clear();
 		vSeeds.clear();
 		// use name as: echo -n hostname | sha256sum
+		vSeeds.push_back(CDNSSeedData("getbze.com", "seeder.getbze.com"));
 		vSeeds.push_back(CDNSSeedData("67ef7caf7a2b08c2f0f11460b121bba1090472761a25da0dc839da81e9255425.BZE", "bzeseed.bzedge.org"));
-		vSeeds.push_back(CDNSSeedData("9320e28827e4e0ec1aa7f0876fa21fbe92fe2af311b2aabe2f585e73170a7863.BZE", "bzeseed.btcz.biz"));
 
         // guarantees the first 2 characters, when base58 encoded, are "t1"
         base58Prefixes[PUBKEY_ADDRESS]     = {0x1C,0xB8};
@@ -250,13 +250,14 @@ public:
 			( 153955, uint256S("0x00000006913d3122f32e60c9d64e87edd8e9a05444447df49713c15fbae6484d"))
 			( 160011, uint256S("0x00000002858c5af3a2e7c511c1b360533bef782361415e8e6515eb5961d88354"))  //BZEdge born
 			( 165300, uint256S("0x000001f49a3c070be93770e8d7e84b281c159e367d56c809048d02441db1956c"))
-			( 444600, uint256S("0x0000181b00e928fac7c5841f04ab99038cedbd3776ff658df6eb6c841ccc2ea3")),
+			( 444600, uint256S("0x0000181b00e928fac7c5841f04ab99038cedbd3776ff658df6eb6c841ccc2ea3"))
+			( 586000, uint256S("0x0000094cf923b3cccc179769b948b1cd091382a7ab19db2369ef8e66d0e49cfd")),
 
-			1550401324,     // * UNIX timestamp of last checkpoint block
-			1105771,         // * total number of transactions between genesis and last checkpoint
+			1558952061,     // * UNIX timestamp of last checkpoint block
+			1398171,         // * total number of transactions between genesis and last checkpoint
 							//   (the tx=... number in the SetBestChain debug.log lines)
-			3600  // * estimated number of transactions per day after checkpoint
-							//   total number of tx / (checkpoint block height / (60 * 24))
+			3000  // * estimated number of transactions per day after checkpoint
+							
 		};
 
 
@@ -367,11 +368,13 @@ public:
 		
         assert(consensus.hashGenesisBlock == uint256S("0x03104faa85339763e81d5489c23325b536161fa2b47437c2f6b1b75b48c0d848"));
         assert(genesis.hashMerkleRoot == uint256S("0xf40283d893eb46b35379a404cf06bd58c22ce05b32a4a641adec56e0792789ad"));
-     
+		
+		/*
         LogPrintf("TESTNET\n");
         LogPrintf("consensus.hashGenesisBlock=%s\n", consensus.hashGenesisBlock.GetHex());
         LogPrintf("genesis.hashMerkleRoot=%s\n", genesis.hashMerkleRoot.GetHex());
         LogPrintf("genesis.nTime=%is\n", genesis.nTime);
+        */
         
 		vFixedSeeds.clear();
 		vSeeds.clear();
