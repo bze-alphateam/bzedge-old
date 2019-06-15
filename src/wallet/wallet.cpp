@@ -3961,6 +3961,69 @@ set< set<CTxDestination> > CWallet::GetAddressGroupings()
     return ret;
 }
 
+set<CTxDestination> CWallet::GetAddresses(bool include_watch_only)
+{
+	AssertLockHeld(cs_wallet); // mapWallet
+	set<CTxDestination> t_addresses;
+
+	BOOST_FOREACH(PAIRTYPE(uint256, CWalletTx) walletEntry, mapWallet)
+	{
+		CWalletTx *pcoin = &walletEntry.second;
+
+		if (pcoin->vin.size() > 0)
+		{
+			bool any_mine = false;
+			// standard t-addresses from wallet tx inputs
+			BOOST_FOREACH(CTxIn txin, pcoin->vin)
+			{
+				CTxDestination address;
+				if(!IsMine(txin)) /* If this input isn't mine, ignore it */
+				   continue;
+				if(!ExtractDestination(mapWallet[txin.prevout.hash].vout[txin.prevout.n].scriptPubKey, address))
+					continue;
+				t_addresses.insert(address);
+				any_mine = true;
+			}
+
+			// change addresses from wallet tx outputs
+			if (any_mine)
+			{
+			   BOOST_FOREACH(CTxOut txout, pcoin->vout)
+			   {
+					if (IsChange(txout))
+					{
+						CTxDestination txoutAddr;
+						if(!ExtractDestination(txout.scriptPubKey, txoutAddr))
+							continue;
+						t_addresses.insert(txoutAddr);
+					}
+				   
+			   }
+			}
+		}
+
+		// remaining addresses
+		for (unsigned int i = 0; i < pcoin->vout.size(); i++)
+		{
+			if (IsMine(pcoin->vout[i]))
+			{
+				CTxDestination address;
+				if(!ExtractDestination(pcoin->vout[i].scriptPubKey, address))
+					continue;
+				
+				bool is_watch_only = (pwalletMain ? ::IsMine(*pwalletMain, address) : ISMINE_NO) & ISMINE_WATCH_ONLY;
+		
+				if (!include_watch_only && is_watch_only)
+					continue;
+				
+				t_addresses.insert(address);
+			}			
+		}
+	}
+
+	return t_addresses;
+}
+
 std::set<CTxDestination> CWallet::GetAccountAddresses(const std::string& strAccount) const
 {
     LOCK(cs_wallet);

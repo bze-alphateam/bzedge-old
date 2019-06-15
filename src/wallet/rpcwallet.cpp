@@ -517,6 +517,56 @@ UniValue listaddressgroupings(const UniValue& params, bool fHelp)
     return jsonGroupings;
 }
 
+
+UniValue getaddresses(const UniValue& params, bool fHelp)
+{
+    if (!EnsureWalletIsAvailable(fHelp))
+        return NullUniValue;
+
+    if (fHelp || params.size() > 1)
+        throw runtime_error(
+            "getaddresses (include_watch_only)\n"
+            "\nLists transparent addresses in wallet, including change and (optionally) watch only\n"
+            "\nResult:\n"
+            "[\n"
+            "  {\n"
+            "    \"address\": address,     (string) The bzedge address\n"
+            "    \"is_change\": true,      (boolean) True if current address is change address\n"
+            "    \"is_watch_only\": false  (boolean) True if current address funds are not spendable\n"
+            "    \"balance\": balance      (numeric) Address balance\n"
+            "  },\n"
+            "  ...\n"
+            "]\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getaddresses", "1")
+            + HelpExampleRpc("getaddresses", "params")
+        );
+
+    LOCK2(cs_main, pwalletMain->cs_wallet);
+
+	bool include_watch_only = (params.size() == 1 && params[0].get_str() == "1");
+	
+    UniValue uv_result(UniValue::VARR);
+    std::map<CTxDestination, CAmount> balances = pwalletMain->GetAddressBalances();
+    for (const CTxDestination address : pwalletMain->GetAddresses(include_watch_only))
+    {
+        UniValue address_item(UniValue::VOBJ);
+       
+        address_item.push_back(Pair("address", EncodeDestination(address)));
+        
+        bool is_change = !pwalletMain->mapAddressBook.count(address);
+        address_item.push_back(Pair("is_change", is_change));
+        
+        bool is_watch_only = ::IsMine(*pwalletMain, address) & ISMINE_WATCH_ONLY;
+        address_item.push_back(Pair("is_watch_only", is_watch_only));
+        
+        address_item.push_back(Pair("balance", ValueFromAmount(balances[address])));
+        
+        uv_result.push_back(address_item);
+    }
+    return uv_result;
+}
+
 UniValue signmessage(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
@@ -4627,6 +4677,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "keypoolrefill",            &keypoolrefill,            true  },
     { "wallet",             "listaccounts",             &listaccounts,             false },
     { "wallet",             "listaddressgroupings",     &listaddressgroupings,     false },
+    { "wallet",             "getaddresses",             &getaddresses,             false },
     { "wallet",             "listlockunspent",          &listlockunspent,          false },
     { "wallet",             "listreceivedbyaccount",    &listreceivedbyaccount,    false },
     { "wallet",             "listreceivedbyaddress",    &listreceivedbyaddress,    false },
