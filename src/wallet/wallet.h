@@ -1144,6 +1144,7 @@ public:
     void GetAllReserveKeys(std::set<CKeyID>& setAddress) const;
 
     std::set< std::set<CTxDestination> > GetAddressGroupings();
+    std::set<CTxDestination> GetAddresses(bool include_watch_only = false);
     std::map<CTxDestination, CAmount> GetAddressBalances();
 
     std::set<CTxDestination> GetAccountAddresses(const std::string& strAccount) const;
