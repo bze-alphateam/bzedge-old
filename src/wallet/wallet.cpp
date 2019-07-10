@@ -3994,8 +3994,15 @@ set<CTxDestination> CWallet::GetAddresses(bool include_watch_only)
 				CTxDestination address;
 				if(!IsMine(txin)) /* If this input isn't mine, ignore it */
 				   continue;
+				
 				if(!ExtractDestination(mapWallet[txin.prevout.hash].vout[txin.prevout.n].scriptPubKey, address))
 					continue;
+				
+				bool is_watch_only = (pwalletMain ? ::IsMine(*pwalletMain, address) : ISMINE_NO) & ISMINE_WATCH_ONLY;
+				
+				if (!include_watch_only && is_watch_only)
+					continue;	
+					
 				t_addresses.insert(address);
 				any_mine = true;
 			}
@@ -4010,6 +4017,12 @@ set<CTxDestination> CWallet::GetAddresses(bool include_watch_only)
 						CTxDestination txoutAddr;
 						if(!ExtractDestination(txout.scriptPubKey, txoutAddr))
 							continue;
+						
+						bool is_watch_only = (pwalletMain ? ::IsMine(*pwalletMain, txoutAddr) : ISMINE_NO) & ISMINE_WATCH_ONLY;
+						
+						if (!include_watch_only && is_watch_only)
+							continue;
+						
 						t_addresses.insert(txoutAddr);
 					}
 				   
