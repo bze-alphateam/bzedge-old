@@ -3963,8 +3963,23 @@ set< set<CTxDestination> > CWallet::GetAddressGroupings()
 
 set<CTxDestination> CWallet::GetAddresses(bool include_watch_only)
 {
+	LOCK(cs_wallet);
 	AssertLockHeld(cs_wallet); // mapWallet
 	set<CTxDestination> t_addresses;
+
+	// address book first
+	BOOST_FOREACH(const PAIRTYPE(CTxDestination, CAddressBookData)& item, mapAddressBook)
+    {
+        const CTxDestination& address = item.first;
+        const string& account = item.second.name;
+        bool is_watch_only = (pwalletMain ? ::IsMine(*pwalletMain, address) : ISMINE_NO) & ISMINE_WATCH_ONLY;
+		
+		if (!include_watch_only && is_watch_only)
+			continue;
+        
+        if (account == "")
+            t_addresses.insert(address);
+    }
 
 	BOOST_FOREACH(PAIRTYPE(uint256, CWalletTx) walletEntry, mapWallet)
 	{
