@@ -133,6 +133,9 @@ public:
         consensus.nMajorityWindow = 4000;
         consensus.powLimit = uint256S("0007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowAveragingWindow = 13;
+        consensus.nMasternodePaymentsStartBlock = 193200;
+        consensus.nMasternodePaymentsIncreasePeriod = 43200; // 1 month
+
         assert(maxUint/UintToArith256(consensus.powLimit) >= consensus.nPowAveragingWindow);
         consensus.nPowMaxAdjustDown = 34;
         consensus.nPowMaxAdjustUp = 34;

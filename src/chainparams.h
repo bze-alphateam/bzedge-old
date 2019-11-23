@@ -36,9 +36,6 @@ static const EHparameters eh96_5 = {96,5,68};
 static const EHparameters eh48_5 = {48,5,36};
 static const unsigned int MAX_EH_PARAM_LIST_LEN = 2;
 
-
-
-
 typedef std::map<int, uint256> MapCheckpoints;
 
 struct CCheckpointData {
