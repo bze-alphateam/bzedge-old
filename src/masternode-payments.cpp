@@ -303,48 +303,13 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
 
     CAmount blockValue = GetBlockSubsidy(nHeight, Params().GetConsensus());
     CAmount minerValue = blockValue;
-    
-    // Founders reward
-    CAmount vFoundersReward = 0;
-    if(nHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight)
-    {
-        vFoundersReward = blockValue / 20;
-    }
-    else if(nHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight)
-    {
-        vFoundersReward = blockValue * 7.5 / 100;
-    }
-    else
-    {
-        vFoundersReward = blockValue * 15 / 100;
-    }
-
-    // Treasury reward
-    CAmount vTreasuryReward = 0;
-    if(nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight)
-    {
-        vTreasuryReward = blockValue * 5 / 100;
-    }
-    
+   
     CAmount masternodePayment = GetMasternodePayment(nHeight, blockValue);
     if(hasPayment){
         minerValue -= masternodePayment;
     }
 
     txNew.vout[0].nValue = minerValue + nFees;
-
-    if ((nHeight > 0) && (nHeight <= Params().GetConsensus().GetLastFoundersRewardBlockHeight())) {
-        // Take some reward away from us
-        txNew.vout[0].nValue -= vFoundersReward;
-        txNew.vout[0].nValue -= vTreasuryReward;
-
-        // And give it to the founders
-        txNew.vout.push_back(CTxOut(vFoundersReward, Params().GetFoundersRewardScriptAtHeight(nHeight)));
-        if(nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight)
-        {
-            txNew.vout.push_back(CTxOut(vTreasuryReward, Params().GetTreasuryRewardScriptAtHeight(nHeight)));
-        }
-    }
 
     //@TODO masternode
     if(hasPayment){
@@ -360,16 +325,8 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
 
 int CMasternodePayments::GetMinMasternodePaymentsProto()
 {
-    if (IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
-        return ActiveProtocol();                          // Allow only updated peers
-    else
-    {
-        int minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT;
-        if (NetworkUpgradeActive(nLastBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_KNOWHERE)) {
-            minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT_KNOWHERE;
-        }
-        return minPeer;
-    }
+    //if (IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
+    return ActiveProtocol();                          // Allow only updated peers
 }
 
 void CMasternodePayments::ProcessMessageMasternodePayments(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
@@ -570,6 +527,7 @@ bool CMasternodeBlockPayees::IsTransactionValid(const CTransaction& txNew)
 	
 	// //require at least 6 signatures
     if (NetworkUpgradeActive(nBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_ALFHEIMR)) {
+        
         BOOST_FOREACH (CMasternodePayee& payee, vecPayments)
         {
             LogPrint("masternode","Masternode payment nVotes=%d nMaxSignatures=%d\n", payee.nVotes, nMaxSignatures);

@@ -429,6 +429,25 @@ CNode* ConnectNode(CAddress addrConnect, const char* pszDest, bool obfuScationMa
     return NULL;
 }
 
+void DisconnectNodes()
+{
+    // Close sockets
+    BOOST_FOREACH(CNode* pnode, vNodes)
+        if (pnode->hSocket != INVALID_SOCKET)
+        {
+            CMasternode* mn = mnodeman.Find(pnode->addr);
+            if(mn == NULL)
+            {
+                pnode->fDisconnect = true;
+                LogPrintf("disconnect %s\n", pnode->addr.ToString());
+            }
+            else
+            {
+                LogPrintf("do not disconnect %s\n", pnode->addr.ToString());
+            }
+        }
+}
+
 void CNode::CloseSocketDisconnect()
 {
     fDisconnect = true;

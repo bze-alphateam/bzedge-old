@@ -522,44 +522,6 @@ void CBudgetManager::FillBlockPayee(CMutableTransaction& txNew, CAmount nFees)
     //miners get the full amount on these blocks
     txNew.vout[0].nValue = blockValue;
 
-    if ((pindexPrev->nHeight + 1 > 0) && (pindexPrev->nHeight + 1 <= Params().GetConsensus().GetLastFoundersRewardBlockHeight())) {
-
-        CAmount vFoundersReward = 0;
-        
-        if(pindexPrev->nHeight + 1 < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight)
-        {
-            vFoundersReward = txNew.vout[0].nValue / 20;
-        }
-        else if(pindexPrev->nHeight + 1 < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight)
-        {
-            vFoundersReward = txNew.vout[0].nValue * 7.5 / 100;
-        }
-        else
-        {
-            vFoundersReward = txNew.vout[0].nValue * 15 / 100;
-        }
-
-        // And give it to the founders
-        txNew.vout.push_back(CTxOut(vFoundersReward, Params().GetFoundersRewardScriptAtHeight(pindexPrev->nHeight + 1)));
-
-        CAmount vTreasuryReward = 0;
-        if(pindexPrev->nHeight + 1 >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight)
-        {
-            vTreasuryReward = txNew.vout[0].nValue * 5 / 100;
-        }
-
-        // Take some reward away from us
-        txNew.vout[0].nValue -= vFoundersReward;
-        txNew.vout[0].nValue -= vTreasuryReward;
-
-        // And give it to the founders
-        txNew.vout.push_back(CTxOut(vFoundersReward, Params().GetFoundersRewardScriptAtHeight(pindexPrev->nHeight + 1)));
-        if(pindexPrev->nHeight + 1 >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight)
-        {
-            txNew.vout.push_back(CTxOut(vTreasuryReward, Params().GetTreasuryRewardScriptAtHeight(pindexPrev->nHeight + 1)));
-        }
-    }
-
     if(nHighestCount > 0){
         txNew.vout[0].nValue -= nAmount;
 
