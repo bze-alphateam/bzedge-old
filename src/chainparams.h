@@ -103,7 +103,7 @@ public:
     unsigned int EquihashK() const { return nEquihashK; }
     
     
-    
+    int MasternodeCountDrift() const { return nMasternodeCountDrift; }
     std::string CurrencyUnits() const { return strCurrencyUnits; }
     uint32_t BIP44CoinType() const { return bip44CoinType; }
     /** Make miner stop after a block is found. In RPC, don't return until nGenProcLimit blocks are generated */
@@ -117,13 +117,18 @@ public:
     const std::string& Bech32HRP(Bech32Type type) const { return bech32HRPs[type]; }
     const std::vector<SeedSpec6>& FixedSeeds() const { return vFixedSeeds; }
     const CCheckpointData& Checkpoints() const { return checkpointData; }
-    /** Return the founder's reward address and script for a given block height */
-    std::string GetFoundersRewardAddressAtHeight(int height) const;
-    CScript GetFoundersRewardScriptAtHeight(int height) const;
-    std::string GetFoundersRewardAddressAtIndex(int i) const;
+    int PoolMaxTransactions() const { return nPoolMaxTransactions; }
+
+    std::string SporkKey() const { return strSporkKey; }
+    std::string ObfuscationPoolDummyAddress() const { return strObfuscationPoolDummyAddress; }
+    int64_t StartMasternodePayments() const { return nStartMasternodePayments; }
+    int64_t Budget_Fee_Confirmations() const { return nBudget_Fee_Confirmations; }
+
     /** Enforce coinbase consensus rule in regtest mode */
     void SetRegTestCoinbaseMustBeProtected() { consensus.fCoinbaseMustBeProtected = true; }
     int GetNewTimeRule() const { return newTimeRule; }
+    int GetMasternodeProtectionBlock() const { return masternodeProtectionBlock; }
+    int GetMasternodeCollateral() const { return masternodeCollateral; }
 protected:
     CChainParams() {}
 
@@ -156,9 +161,16 @@ protected:
     bool fRequireStandard = false;
     bool fMineBlocksOnDemand = false;
     bool fTestnetToBeDeprecatedFieldRPC = false;
+    int nMasternodeCountDrift;
+    int nPoolMaxTransactions;
+    std::string strSporkKey;
+    std::string strObfuscationPoolDummyAddress;
+    int64_t nStartMasternodePayments;
+    int64_t nBudget_Fee_Confirmations;
     CCheckpointData checkpointData;
-    std::vector<std::string> vFoundersRewardAddress;
     int newTimeRule = 2000000000; //Will remain at this value if not otherwise defined in chain class.
+    int masternodeProtectionBlock;
+    int masternodeCollateral;
 };
 
 /**

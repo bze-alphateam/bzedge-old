@@ -133,8 +133,7 @@ public:
         consensus.nMajorityWindow = 4000;
         consensus.powLimit = uint256S("0007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowAveragingWindow = 13;
-        consensus.nMasternodePaymentsStartBlock = 193200;
-        consensus.nMasternodePaymentsIncreasePeriod = 43200; // 1 month
+        consensus.nMasternodePaymentsStartBlock = 850000;
 
         assert(maxUint/UintToArith256(consensus.powLimit) >= consensus.nPowAveragingWindow);
         consensus.nPowMaxAdjustDown = 34;
@@ -151,6 +150,8 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight = 484000;
         consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nProtocolVersion = 175017;
         consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nActivationHeight = 484000;
+        consensus.vUpgrades[Consensus::UPGRADE_ALFHEIMR].nActivationHeight = 850000;
+        consensus.vUpgrades[Consensus::UPGRADE_ALFHEIMR].nProtocolVersion = 175018;
 
         // The best chain should have at least this much work.
         // consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000000000000004000");
@@ -192,6 +193,8 @@ public:
         BOOST_STATIC_ASSERT(equihash_parameters_acceptable(N, K));
         nEquihashN = N;
         nEquihashK = K;
+
+        nMasternodeCountDrift = 0;
 
 		// empty solution
 		const std::vector<unsigned char> empty_solution;
@@ -264,11 +267,14 @@ public:
 			3000  // * estimated number of transactions per day after checkpoint
 							
 		};
+        nPoolMaxTransactions = 3;
+        strSporkKey = "045da9271f5d9df405d9e83c7c7e62e9c831cc85c51ffaa6b515c4f9c845dec4bf256460003f26ba9d394a17cb57e6759fe231eca75b801c20bccd19cbe4b7942d";
 
-
-        // Founders reward script expects a vector of 2-of-3 multisig addresses
-        vFoundersRewardAddress = {};
-        assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight());
+        strObfuscationPoolDummyAddress = "t1cW3eB2pruAMdfc7nu5nSbEcRqdGNMup3s";
+        nStartMasternodePayments = 1574683200; //2018-04-15
+        nBudget_Fee_Confirmations = 6; // Number of confirmations for the finalization fee
+        masternodeProtectionBlock = 850000;
+        masternodeCollateral = 10000;
     }
 };
 static CMainParams mainParams;
@@ -307,7 +313,10 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nProtocolVersion = 175017;
         // consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nActivationHeight = 235000; // original testnet
         consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nActivationHeight = 200; // private testnet
+        consensus.vUpgrades[Consensus::UPGRADE_ALFHEIMR].nActivationHeight = 8500;
+        consensus.vUpgrades[Consensus::UPGRADE_ALFHEIMR].nProtocolVersion = 170008;
 		
+        consensus.nMasternodePaymentsStartBlock = 1500;
 		
 		consensus.fPowNoRetargeting=false;
 		consensus.nLWMAHeight=76;
@@ -424,9 +433,9 @@ public:
 			0
 		};
 
-        // Founders reward script expects a vector of 2-of-3 multisig addresses
-        vFoundersRewardAddress = {};
-        assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight());
+        nStartMasternodePayments = 1520121600; //2018-03-04
+        masternodeProtectionBlock = 7900;
+        masternodeCollateral = 10;
     }
 };
 static CTestNetParams testNetParams;
@@ -537,9 +546,6 @@ public:
         bech32HRPs[SAPLING_INCOMING_VIEWING_KEY] = "zivkregtestsapling";
         bech32HRPs[SAPLING_EXTENDED_SPEND_KEY]   = "secret-extended-key-regtest";
 
-        // Founders reward script expects a vector of 2-of-3 multisig addresses
-        vFoundersRewardAddress = {};
-        assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight());
     }
 
     void UpdateNetworkUpgradeParameters(Consensus::UpgradeIndex idx, int nActivationHeight)
@@ -589,36 +595,6 @@ bool SelectParamsFromCommandLine()
 
     SelectParams(network);
     return true;
-}
-
-
-// Block height must be >0 and <=last founders reward block height
-// Index variable i ranges from 0 - (vFoundersRewardAddress.size()-1)
-std::string CChainParams::GetFoundersRewardAddressAtHeight(int nHeight) const {
-    int maxHeight = consensus.GetLastFoundersRewardBlockHeight();
-    assert(nHeight > 0 && nHeight <= maxHeight);
-
-    size_t addressChangeInterval = (maxHeight + vFoundersRewardAddress.size()) / vFoundersRewardAddress.size();
-    size_t i = nHeight / addressChangeInterval;
-    return vFoundersRewardAddress[i];
-}
-
-// Block height must be >0 and <=last founders reward block height
-// The founders reward address is expected to be a multisig (P2SH) address
-CScript CChainParams::GetFoundersRewardScriptAtHeight(int nHeight) const {
-    assert(nHeight > 0 && nHeight <= consensus.GetLastFoundersRewardBlockHeight());
-
-    CTxDestination address = DecodeDestination(GetFoundersRewardAddressAtHeight(nHeight).c_str());
-    assert(IsValidDestination(address));
-    assert(boost::get<CScriptID>(&address) != nullptr);
-    CScriptID scriptID = boost::get<CScriptID>(address); // address is a boost variant
-    CScript script = CScript() << OP_HASH160 << ToByteVector(scriptID) << OP_EQUAL;
-    return script;
-}
-
-std::string CChainParams::GetFoundersRewardAddressAtIndex(int i) const {
-    assert(i >= 0 && i < vFoundersRewardAddress.size());
-    return vFoundersRewardAddress[i];
 }
 
 void UpdateNetworkUpgradeParameters(Consensus::UpgradeIndex idx, int nActivationHeight)
