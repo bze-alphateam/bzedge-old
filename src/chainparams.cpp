@@ -313,10 +313,10 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nProtocolVersion = 175017;
         // consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nActivationHeight = 235000; // original testnet
         consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nActivationHeight = 200; // private testnet
-        consensus.vUpgrades[Consensus::UPGRADE_ALFHEIMR].nActivationHeight = 20000;
+        consensus.vUpgrades[Consensus::UPGRADE_ALFHEIMR].nActivationHeight = 17000;
         consensus.vUpgrades[Consensus::UPGRADE_ALFHEIMR].nProtocolVersion = 175013;
 		
-        consensus.nMasternodePaymentsStartBlock = 20000;
+        consensus.nMasternodePaymentsStartBlock = 17000;
 		
 		consensus.fPowNoRetargeting=false;
 		consensus.nLWMAHeight=76;
@@ -434,7 +434,7 @@ public:
 		};
 
         nStartMasternodePayments = 1520121600; //2018-03-04
-        masternodeProtectionBlock = 20000;
+        masternodeProtectionBlock = 17000;
         masternodeCollateral = 10;
     }
 };
