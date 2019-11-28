@@ -221,7 +221,7 @@ UniValue masternodeconnect(const UniValue& params, bool fHelp)
             "1. \"address\"     (string, required) IP or net address to connect to\n"
 
             "\nExamples:\n" +
-            HelpExampleCli("masternodeconnect", "\"192.168.0.6:16113\"") + HelpExampleRpc("masternodeconnect", "\"192.168.0.6:16113\""));
+            HelpExampleCli("masternodeconnect", "\"192.168.0.6:1990\"") + HelpExampleRpc("masternodeconnect", "\"192.168.0.6:1990\""));
 
     std::string strAddress = params[0].get_str();
 
@@ -258,7 +258,11 @@ UniValue startalias(const UniValue& params, bool fHelp)
 
     std::string strAlias = params[0].get_str();
     bool fSuccess = false;
-    BOOST_FOREACH (CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+    std::vector<CMasternodeEntry> mnEntries;
+    std::string strErr="";
+    mnEntries = masternodeConfig.getEntries(strErr);
+        
+    for (auto mne: mnEntries) {
         if (mne.getAlias() == strAlias) {
             std::string strError;
             CMasternodeBroadcast mnb;
@@ -427,7 +431,12 @@ UniValue startmasternode (const UniValue& params, bool fHelp)
         UniValue resultsObj(UniValue::VARR);
         int successful = 0;
         int failed = 0;
-        BOOST_FOREACH (CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+
+		std::vector<CMasternodeEntry> mnEntries;
+		std::string strErr="";
+		mnEntries = masternodeConfig.getEntries(strErr);
+        
+        for (auto mne: mnEntries) {
             UniValue statusObj(UniValue::VOBJ);
             statusObj.push_back(Pair("alias", mne.getAlias()));
             statusObj.push_back(Pair("result", "failed"));
@@ -475,15 +484,15 @@ UniValue startmasternode (const UniValue& params, bool fHelp)
             throw runtime_error("You can't use this command until masternode list is synced\n");
         }
 
-        std::vector<CMasternodeConfig::CMasternodeEntry> mnEntries;
-        mnEntries = masternodeConfig.getEntries();
-
         int successful = 0;
         int failed = 0;
 
         UniValue resultsObj(UniValue::VARR);
+		std::vector<CMasternodeEntry> mnEntries;
+		std::string strErr="";
+		mnEntries = masternodeConfig.getEntries(strErr);
 
-        BOOST_FOREACH (CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+        for (auto mne: mnEntries) {
             std::string errorMessage;
             int nIndex;
             if(!mne.castOutputIndex(nIndex))
@@ -535,13 +544,16 @@ UniValue startmasternode (const UniValue& params, bool fHelp)
         UniValue resultsObj(UniValue::VARR);
         UniValue statusObj(UniValue::VOBJ);
         statusObj.push_back(Pair("alias", alias));
+		
+		std::string strErr="";
+		std::vector<CMasternodeEntry> mnEntries = masternodeConfig.getEntries(strErr);
 
-        BOOST_FOREACH (CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
-            if (mne.getAlias() == alias) {
+        for (auto mne : mnEntries) {
+            if (mne.alias == alias) {
                 found = true;
                 std::string errorMessage;
 
-                bool result = activeMasternode.Register(mne.getIp(), mne.getPrivKey(), mne.getTxHash(), mne.getOutputIndex(), errorMessage);
+                bool result = activeMasternode.Register(mne.ip, mne.privKey, mne.txHash, mne.outputIndex, errorMessage);
 
                 statusObj.push_back(Pair("result", result ? "successful" : "failed"));
 
@@ -558,6 +570,7 @@ UniValue startmasternode (const UniValue& params, bool fHelp)
 
         if (!found) {
             failed++;
+            statusObj.push_back(Pair("size", (int)mnEntries.size()));
             statusObj.push_back(Pair("result", "failed"));
             statusObj.push_back(Pair("error", "could not find alias in config. Verify with list-conf."));
         }
@@ -657,34 +670,42 @@ UniValue listmasternodeconf (const UniValue& params, bool fHelp)
             "\nExamples:\n" +
             HelpExampleCli("listmasternodeconf", "") + HelpExampleRpc("listmasternodeconf", ""));
 
-    std::vector<CMasternodeConfig::CMasternodeEntry> mnEntries;
-    mnEntries = masternodeConfig.getEntries();
+    std::vector<CMasternodeEntry> mnEntries;
+    std::string strErr="";
+    mnEntries = masternodeConfig.getEntries(strErr);
 
     UniValue ret(UniValue::VARR);
 
-    BOOST_FOREACH (CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
-        int nIndex;
-        if(!mne.castOutputIndex(nIndex))
-            continue;
-        CTxIn vin = CTxIn(uint256S(mne.getTxHash()), uint32_t(nIndex));
-        CMasternode* pmn = mnodeman.Find(vin);
+    //BOOST_FOREACH (CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+    if (mnEntries.size() > 0){
+		for (auto mne: mnEntries){
+			int nIndex;
+			if(!mne.castOutputIndex(nIndex))
+				continue;
+			CTxIn vin = CTxIn(uint256S(mne.getTxHash()), uint32_t(nIndex));
+			CMasternode* pmn = mnodeman.Find(vin);
 
-        std::string strStatus = pmn ? pmn->Status() : "MISSING";
+			std::string strStatus = pmn ? pmn->Status() : "MISSING";
 
-        if (strFilter != "" && mne.getAlias().find(strFilter) == string::npos &&
-            mne.getIp().find(strFilter) == string::npos &&
-            mne.getTxHash().find(strFilter) == string::npos &&
-            strStatus.find(strFilter) == string::npos) continue;
+			if (strFilter != "" && mne.getAlias().find(strFilter) == string::npos &&
+				mne.getIp().find(strFilter) == string::npos &&
+				mne.getTxHash().find(strFilter) == string::npos &&
+				strStatus.find(strFilter) == string::npos) continue;
 
-        UniValue mnObj(UniValue::VARR);
-        mnObj.push_back(Pair("alias", mne.getAlias()));
-        mnObj.push_back(Pair("address", mne.getIp()));
-        mnObj.push_back(Pair("privateKey", mne.getPrivKey()));
-        mnObj.push_back(Pair("txHash", mne.getTxHash()));
-        mnObj.push_back(Pair("outputIndex", mne.getOutputIndex()));
-        mnObj.push_back(Pair("status", strStatus));
-        ret.push_back(mnObj);
+			UniValue mnObj(UniValue::VARR);
+			mnObj.push_back(Pair("alias", mne.getAlias()));
+			mnObj.push_back(Pair("address", mne.getIp()));
+			mnObj.push_back(Pair("privateKey", mne.getPrivKey()));
+			mnObj.push_back(Pair("txHash", mne.getTxHash()));
+			mnObj.push_back(Pair("outputIndex", mne.getOutputIndex()));
+			mnObj.push_back(Pair("status", strStatus));
+			ret.push_back(mnObj);
+		}
     }
+    else {
+		ret.push_back(Pair("entries", mnEntries.size()));
+		ret.push_back(Pair("entries", strErr.c_str()));	
+	}
 
     return ret;
 }

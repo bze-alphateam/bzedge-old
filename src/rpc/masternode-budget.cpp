@@ -351,7 +351,12 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
     }
 
     if (strCommand == "many") {
-        BOOST_FOREACH (CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+
+		std::vector<CMasternodeEntry> mnEntries;
+		std::string strErr ="";
+		mnEntries = masternodeConfig.getEntries(strErr);
+
+        for (auto mne: mnEntries) {
             std::string errorMessage;
             std::vector<unsigned char> vchMasterNodeSignature;
             std::string strMasterNodeSignMessage;
@@ -419,10 +424,10 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
 
     if (strCommand == "alias") {
         std::string strAlias = params[3].get_str();
-        std::vector<CMasternodeConfig::CMasternodeEntry> mnEntries;
-        mnEntries = masternodeConfig.getEntries();
-
-        BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+		std::vector<CMasternodeEntry> mnEntries;
+		std::string strErr;
+		mnEntries = masternodeConfig.getEntries(strErr);
+        for(auto mne: mnEntries) {
 
             if( strAlias != mne.getAlias()) continue;
 
@@ -778,7 +783,11 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
 
         UniValue resultsObj(UniValue::VOBJ);
 
-        BOOST_FOREACH (CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+		std::vector<CMasternodeEntry> mnEntries;
+		std::string strErr;
+		mnEntries = masternodeConfig.getEntries(strErr);
+
+        for (auto mne: mnEntries) {
             std::string errorMessage;
             std::vector<unsigned char> vchMasterNodeSignature;
             std::string strMasterNodeSignMessage;

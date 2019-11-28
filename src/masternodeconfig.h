@@ -13,110 +13,67 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 
-class CMasternodeConfig;
-extern CMasternodeConfig masternodeConfig;
+class CMasternodeEntry
+{
+public:
+	std::string alias;
+	std::string ip;
+	std::string privKey;
+	std::string txHash;
+	std::string outputIndex;
+
+	CMasternodeEntry(std::string alias, std::string ip, std::string privKey, std::string txHash, std::string outputIndex)
+	{
+		alias = alias;
+		ip = ip;
+		privKey = privKey;
+		txHash = txHash;
+		outputIndex = outputIndex;
+	}
+
+	const std::string& getAlias() const;
+
+	void setAlias(std::string& alias) const;
+
+	const std::string& getOutputIndex() const;
+
+	bool castOutputIndex(int& n) const;
+
+	void setOutputIndex(std::string& outputIndex) const;
+
+	const std::string& getPrivKey() const;
+
+	void setPrivKey(std::string& privKey) const;
+
+	const std::string& getTxHash() const;
+
+	void setTxHash(std::string& txHash) const;
+
+	const std::string& getIp() const;
+
+	void setIp(std::string& ip) const;
+};
 
 class CMasternodeConfig
 {
 public:
-    class CMasternodeEntry
-    {
-    private:
-        std::string alias;
-        std::string ip;
-        std::string privKey;
-        std::string txHash;
-        std::string outputIndex;
-
-    public:
-        CMasternodeEntry(std::string alias, std::string ip, std::string privKey, std::string txHash, std::string outputIndex)
-        {
-            this->alias = alias;
-            this->ip = ip;
-            this->privKey = privKey;
-            this->txHash = txHash;
-            this->outputIndex = outputIndex;
-        }
-
-        const std::string& getAlias() const
-        {
-            return alias;
-        }
-
-        void setAlias(const std::string& alias)
-        {
-            this->alias = alias;
-        }
-
-        const std::string& getOutputIndex() const
-        {
-            return outputIndex;
-        }
-
-        bool castOutputIndex(int& n);
-
-        void setOutputIndex(const std::string& outputIndex)
-        {
-            this->outputIndex = outputIndex;
-        }
-
-        const std::string& getPrivKey() const
-        {
-            return privKey;
-        }
-
-        void setPrivKey(const std::string& privKey)
-        {
-            this->privKey = privKey;
-        }
-
-        const std::string& getTxHash() const
-        {
-            return txHash;
-        }
-
-        void setTxHash(const std::string& txHash)
-        {
-            this->txHash = txHash;
-        }
-
-        const std::string& getIp() const
-        {
-            return ip;
-        }
-
-        void setIp(const std::string& ip)
-        {
-            this->ip = ip;
-        }
-    };
+    std::vector<CMasternodeEntry> entries;
 
     CMasternodeConfig()
     {
-        entries = std::vector<CMasternodeEntry>();
     }
 
     void clear();
     bool read(std::string& strErr);
     void add(std::string alias, std::string ip, std::string privKey, std::string txHash, std::string outputIndex);
+    
+    void addEntries(std::string& strErr);
 
-    std::vector<CMasternodeEntry>& getEntries()
-    {
-        return entries;
-    }
+    std::vector<CMasternodeEntry> getEntries(std::string& strErr);
 
-    int getCount()
-    {
-        int c = -1;
-        BOOST_FOREACH (CMasternodeEntry e, entries) {
-            if (e.getAlias() != "") c++;
-        }
-        return c;
-    }
+    int getCount();
 
-private:
-    std::vector<CMasternodeEntry> entries;
 };
 
-
+extern CMasternodeConfig masternodeConfig;
 #endif /* SRC_MASTERNODECONFIG_H_ */

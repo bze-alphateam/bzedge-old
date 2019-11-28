@@ -1937,12 +1937,22 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         LOCK(pwalletMain->cs_wallet);
         LogPrintf("Locking Masternodes:\n");
         uint256 mnTxHash;
-        BOOST_FOREACH (CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
-            LogPrintf("  %s %s\n", mne.getTxHash(), mne.getOutputIndex());
-            mnTxHash.SetHex(mne.getTxHash());
-            COutPoint outpoint = COutPoint(mnTxHash, boost::lexical_cast<unsigned int>(mne.getOutputIndex()));
-            pwalletMain->LockCoin(outpoint);
-        }
+		
+		std::string strErr="";
+		masternodeConfig.addEntries(strErr);
+		std::vector<CMasternodeEntry> mnEntries = masternodeConfig.entries;
+
+		//if (strErr!="")
+		LogPrintf("alias %s \n", mnEntries[0].alias );
+
+		for (int i = 0; i < mnEntries.size(); i++) {
+			LogPrintf("masternode output found  %s %s \n", mnEntries[i].txHash, mnEntries[i].outputIndex);
+			mnTxHash.SetHex(mnEntries[i].txHash);
+			if (mnEntries[i].outputIndex != ""){
+				COutPoint outpoint = COutPoint(mnTxHash, std::stoi(mnEntries[i].outputIndex));
+				pwalletMain->LockCoin(outpoint);
+			}
+		}		
     }
     fEnableZcashSend = GetBoolArg("-enablezcashsend", false);
 
