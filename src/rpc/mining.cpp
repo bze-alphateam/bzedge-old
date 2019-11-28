@@ -25,6 +25,8 @@
 #include "wallet/wallet.h"
 #endif
 
+#include "key_io.h"
+
 #include <stdint.h>
 
 #include <boost/assign/list_of.hpp>
@@ -483,6 +485,14 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
             "  \"curtime\" : ttt,                  (numeric) current timestamp in seconds since epoch (Jan 1 1970 GMT)\n"
             "  \"bits\" : \"xxx\",                 (string) compressed target of next block\n"
             "  \"height\" : n                      (numeric) The height of the next block\n"
+            "  \"payee\" : \"xxx\",                (string) required payee for the next block\n"
+            "  \"payee_amount\" : n,               (numeric) required amount to pay\n"
+            "  \"votes\" : [\n                     (array) show vote candidates\n"
+            "        { ... }                       (json object) vote candidate\n"
+            "        ,...\n"
+            "  ],\n"
+            "  \"masternode_payments\" : true|false,         (boolean) true, if masternode payments are enabled\n"
+            "  \"enforce_masternode_payments\" : true|false  (boolean) true, if masternode payments are enforced\n"
             "}\n"
 
             "\nExamples:\n"
@@ -705,6 +715,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         aMutable.push_back("prevblock");
     }
 
+    UniValue aVotes(UniValue::VARR);
     UniValue result(UniValue::VOBJ);
     result.push_back(Pair("capabilities", aCaps));
     result.push_back(Pair("version", pblock->nVersion));
@@ -728,6 +739,23 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     result.push_back(Pair("curtime", pblock->GetBlockTime()));
     result.push_back(Pair("bits", strprintf("%08x", pblock->nBits)));
     result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight+1)));
+    result.push_back(Pair("votes", aVotes));
+
+
+    if(pblock->payee != CScript()){
+        CTxDestination address1;
+        ExtractDestination(pblock->payee, address1);
+
+        result.push_back(Pair("payee", EncodeDestination(address1)));
+        CAmount val = pblock->vtx[0].vout[pblock->vtx[0].vout.size() - 1].nValue;
+        result.push_back(Pair("payee_amount", (int64_t)val));
+    } else {
+        result.push_back(Pair("payee", ""));
+        result.push_back(Pair("payee_amount", ""));
+    }
+
+    result.push_back(Pair("masternode_payments", pblock->nTime > Params().StartMasternodePayments() ? "true" : "false"));
+    result.push_back(Pair("enforce_masternode_payments", true));
 
     return result;
 }
@@ -901,14 +929,10 @@ UniValue getblocksubsidy(const UniValue& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range");
 
     CAmount nReward = GetBlockSubsidy(nHeight, Params().GetConsensus());
-    CAmount nFoundersReward = 0;
-    if ((nHeight > 0) && (nHeight <= Params().GetConsensus().GetLastFoundersRewardBlockHeight())) {
-        nFoundersReward = nReward/5;
-        nReward -= nFoundersReward;
-    }
+    CAmount nMasternodeReward = GetMasternodePayment(nHeight, nReward);
     UniValue result(UniValue::VOBJ);
     result.push_back(Pair("miner", ValueFromAmount(nReward)));
-    result.push_back(Pair("founders", ValueFromAmount(nFoundersReward)));
+    result.push_back(Pair("masternode", ValueFromAmount(nMasternodeReward)));
     return result;
 }
 

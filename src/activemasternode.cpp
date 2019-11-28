@@ -71,13 +71,13 @@ void CActiveMasternode::ManageStatus()
         LogPrintf("CActiveMasternode::ManageStatus() - Checking inbound connection to '%s'\n", service.ToString());
 
         if(NetworkIdFromCommandLine() == CBaseChainParams::MAIN) {
-            if(service.GetPort() != 16113) {
-                notCapableReason = strprintf("Invalid port: %u - only 16113 is supported on mainnet.", service.GetPort());
+            if(service.GetPort() != 1990) {
+                notCapableReason = strprintf("Invalid port: %u - only 1990 is supported on mainnet.", service.GetPort());
                 LogPrintf("CActiveMasternode::ManageStatus() - not capable: %s\n", notCapableReason);
                 return;
             }
-        } else if(service.GetPort() == 16113) {
-            notCapableReason = strprintf("Invalid port: %u - 16113 is only supported on mainnet.", service.GetPort());
+        } else if(service.GetPort() == 1990) {
+            notCapableReason = strprintf("Invalid port: %u - 1990 is only supported on mainnet.", service.GetPort());
             LogPrintf("CActiveMasternode::ManageStatus() - not capable: %s\n", notCapableReason);
             return;
         }
@@ -270,13 +270,13 @@ bool CActiveMasternode::Register(std::string strService, std::string strKeyMaste
     if (!Lookup(strService.c_str(), service, 0, false))
         return LogPrintf("Invalid address %s for masternode.", strService);
     if(NetworkIdFromCommandLine() == CBaseChainParams::MAIN) {
-        if (service.GetPort() != 16113) {
-            errorMessage = strprintf("Invalid port %u for masternode %s - only 16113 is supported on mainnet.", service.GetPort(), strService);
+        if (service.GetPort() != 1990) {
+            errorMessage = strprintf("Invalid port %u for masternode %s - only 1990 is supported on mainnet.", service.GetPort(), strService);
             LogPrintf("CActiveMasternode::Register() - %s\n", errorMessage);
             return false;
         }
-    } else if (service.GetPort() == 16113) {
-        errorMessage = strprintf("Invalid port %u for masternode %s - 16113 is only supported on mainnet.", service.GetPort(), strService);
+    } else if (service.GetPort() == 1990) {
+        errorMessage = strprintf("Invalid port %u for masternode %s - 1990 is only supported on mainnet.", service.GetPort(), strService);
         LogPrintf("CActiveMasternode::Register() - %s\n", errorMessage);
         return false;
     }

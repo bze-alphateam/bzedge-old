@@ -1244,7 +1244,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         if (!sporkManager.SetPrivKey(GetArg("-sporkkey", "")))
             return InitError(_("Unable to sign spork message, wrong key?"));
     }
-	
+
     // Start the lightweight task scheduler thread
     CScheduler::Function serviceLoop = boost::bind(&CScheduler::serviceQueue, &scheduler);
     threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>, "scheduler", serviceLoop));
@@ -1534,7 +1534,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 				// SnowGem: load previous sessions sporks if we have them.
                 // uiInterface.InitMessage(_("Loading sporks..."));
                 LoadSporksFromDB();
-				
+
                 if (!LoadBlockIndex()) {
                     strLoadError = _("Error loading block database");
                     break;
@@ -1842,7 +1842,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     // ********************************************************* Step 10: setup ObfuScation
 
-    
+
 	uiInterface.InitMessage(_("Loading masternode cache..."));
 
     CMasternodeDB mndb;
