@@ -17,10 +17,9 @@
 
 CMasternodeConfig masternodeConfig;
 
-void CMasternodeConfig::add(std::string alias, std::string ip, std::string privKey, std::string txHash, std::string outputIndex)
+void CMasternodeConfig::add(std::string aliasIn, std::string ipIn, std::string privKeyIn, std::string txHashIn, std::string outputIndexIn)
 {
-    CMasternodeEntry cme(alias, ip, privKey, txHash, outputIndex);
-    entries.push_back(cme);
+    entries.push_back(new CMasternodeEntry(aliasIn, ipIn, privKeyIn, txHashIn, outputIndexIn));
 }
 
 bool CMasternodeConfig::read(std::string& strErr)
@@ -46,7 +45,7 @@ bool CMasternodeConfig::read(std::string& strErr)
      	if (streamConfig.is_open()){
 
 			while (streamConfig.good()){
-								
+
 				std::string line;
 				getline (streamConfig,line);
 
@@ -63,7 +62,6 @@ bool CMasternodeConfig::read(std::string& strErr)
 
 				std::vector<std::string> strs;
 				boost::split(strs, line, boost::is_any_of(" "));
-				LogPrintf("read Entry %s \n", strs[0]);
 
 				int port = 0;
 				std::string hostname = "";
@@ -93,7 +91,7 @@ bool CMasternodeConfig::read(std::string& strErr)
     return true;
 }
 
-bool CMasternodeEntry::castOutputIndex(int &n) const
+bool CMasternodeEntry::castOutputIndex(int n) const
 {
     try {
         n = std::stoi(outputIndex);
@@ -105,7 +103,7 @@ bool CMasternodeEntry::castOutputIndex(int &n) const
     return true;
 }
 
-void CMasternodeConfig::addEntries(std::string& strErr){
+void CMasternodeConfig::addEntries(std::string strErr){
 
     try {
         read(strErr);
@@ -114,7 +112,7 @@ void CMasternodeConfig::addEntries(std::string& strErr){
     }
 }
 
-std::vector<CMasternodeEntry> CMasternodeConfig::getEntries(std::string& strErr)
+std::vector<CMasternodeEntry*> CMasternodeConfig::getEntries(std::string strErr)
 {
 	return entries;
 }
@@ -122,58 +120,84 @@ std::vector<CMasternodeEntry> CMasternodeConfig::getEntries(std::string& strErr)
 int CMasternodeConfig::getCount()
 {
 	int c = -1;
-	BOOST_FOREACH (CMasternodeEntry e, entries) {
-		if (e.getAlias() != "") c++;
+	BOOST_FOREACH (CMasternodeEntry *e, entries) {
+		if (e->getAlias() != "") c++;
 	}
 	return c;
 }
 
-const std::string& CMasternodeEntry::getAlias() const
+const std::string CMasternodeEntry::getAlias() const
 {
 	return alias;
 }
 
-void CMasternodeEntry::setAlias(std::string& alias) const
+void CMasternodeEntry::setAlias(std::string alias) const
 {
 	alias = alias;
 }
 
-const std::string& CMasternodeEntry::getOutputIndex() const
+const std::string CMasternodeEntry::getOutputIndex() const
 {
 	return outputIndex;
 }
 
-void CMasternodeEntry::setOutputIndex(std::string& outputIndex) const
+void CMasternodeEntry::setOutputIndex(std::string outputIndex) const
 {
 	outputIndex = outputIndex;
 }
 
-const std::string& CMasternodeEntry::getPrivKey() const
+const std::string CMasternodeEntry::getPrivKey() const
 {
 	return privKey;
 }
 
-void CMasternodeEntry::setPrivKey(std::string& privKey) const
+void CMasternodeEntry::setPrivKey(std::string privKey) const
 {
 	privKey = privKey;
 }
 
-const std::string& CMasternodeEntry::getTxHash() const
+const std::string CMasternodeEntry::getTxHash() const
 {
 	return txHash;
 }
 
-void CMasternodeEntry::setTxHash(std::string& txHash) const
+void CMasternodeEntry::setTxHash(std::string txHash) const
 {
 	txHash = txHash;
 }
 
-const std::string& CMasternodeEntry::getIp() const
+const std::string CMasternodeEntry::getIp() const
 {
 	return ip;
 }
 
-void CMasternodeEntry::setIp(std::string& ip) const
+void CMasternodeEntry::setIp(std::string ip) const
 {
 	ip = ip;
+}
+
+std::string CMasternodeEntry::ToString() const
+{
+    std::string str;
+    str += "CMasternodeEntry( alias : ";
+    str += alias;
+    str += " ip : ";
+    str += ip;
+    str += " privkey : ";
+    str += privKey;
+    str += " txHash : ";
+    str += txHash;
+    str += " outputIndex : ";
+    str += outputIndex;
+    str += ")";
+    return str;
+}
+
+CMasternodeEntry::CMasternodeEntry(std::string aliasIn, std::string ipIn, std::string privKeyIn, std::string txHashIn, std::string outputIndexIn)
+{
+	alias = aliasIn;
+	ip = ipIn;
+	privKey = privKeyIn;
+	txHash = txHashIn;
+	outputIndex = outputIndexIn;
 }

@@ -351,10 +351,8 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
     }
 
     if (strCommand == "many") {
-
-		std::vector<CMasternodeEntry> mnEntries;
 		std::string strErr ="";
-		mnEntries = masternodeConfig.getEntries(strErr);
+		std::vector<CMasternodeEntry*> mnEntries = masternodeConfig.getEntries(strErr);
 
         for (auto mne: mnEntries) {
             std::string errorMessage;
@@ -368,9 +366,9 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
 
             UniValue statusObj(UniValue::VOBJ);
 
-            if (!obfuScationSigner.SetKey(mne.getPrivKey(), errorMessage, keyMasternode, pubKeyMasternode)) {
+            if (!obfuScationSigner.SetKey(mne->getPrivKey(), errorMessage, keyMasternode, pubKeyMasternode)) {
                 failed++;
-                statusObj.push_back(Pair("node", mne.getAlias()));
+                statusObj.push_back(Pair("node", mne->getAlias()));
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("error", "Masternode signing error, could not set key correctly: " + errorMessage));
                 resultsObj.push_back(statusObj);
@@ -380,7 +378,7 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
             CMasternode* pmn = mnodeman.Find(pubKeyMasternode);
             if (pmn == NULL) {
                 failed++;
-                statusObj.push_back(Pair("node", mne.getAlias()));
+                statusObj.push_back(Pair("node", mne->getAlias()));
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("error", "Can't find masternode by pubkey"));
                 resultsObj.push_back(statusObj);
@@ -390,7 +388,7 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
             CBudgetVote vote(pmn->vin, hash, nVote);
             if (!vote.Sign(keyMasternode, pubKeyMasternode)) {
                 failed++;
-                statusObj.push_back(Pair("node", mne.getAlias()));
+                statusObj.push_back(Pair("node", mne->getAlias()));
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("error", "Failure to sign."));
                 resultsObj.push_back(statusObj);
@@ -402,12 +400,12 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
                 budget.mapSeenMasternodeBudgetVotes.insert(make_pair(vote.GetHash(), vote));
                 vote.Relay();
                 success++;
-                statusObj.push_back(Pair("node", mne.getAlias()));
+                statusObj.push_back(Pair("node", mne->getAlias()));
                 statusObj.push_back(Pair("result", "success"));
                 statusObj.push_back(Pair("error", ""));
             } else {
                 failed++;
-                statusObj.push_back(Pair("node", mne.getAlias()));
+                statusObj.push_back(Pair("node", mne->getAlias()));
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("error", strError.c_str()));
             }
@@ -424,12 +422,11 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
 
     if (strCommand == "alias") {
         std::string strAlias = params[3].get_str();
-		std::vector<CMasternodeEntry> mnEntries;
 		std::string strErr;
-		mnEntries = masternodeConfig.getEntries(strErr);
+		std::vector<CMasternodeEntry*> mnEntries = masternodeConfig.getEntries(strErr);
         for(auto mne: mnEntries) {
 
-            if( strAlias != mne.getAlias()) continue;
+            if( strAlias != mne->getAlias()) continue;
 
             std::string errorMessage;
             std::vector<unsigned char> vchMasterNodeSignature;
@@ -442,9 +439,9 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
 
             UniValue statusObj(UniValue::VOBJ);
 
-            if(!obfuScationSigner.SetKey(mne.getPrivKey(), errorMessage, keyMasternode, pubKeyMasternode)){
+            if(!obfuScationSigner.SetKey(mne->getPrivKey(), errorMessage, keyMasternode, pubKeyMasternode)){
                 failed++;
-                statusObj.push_back(Pair("node", mne.getAlias()));
+                statusObj.push_back(Pair("node", mne->getAlias()));
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("error", "Masternode signing error, could not set key correctly: " + errorMessage));
                 resultsObj.push_back(statusObj);
@@ -455,7 +452,7 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
             if(pmn == NULL)
             {
                 failed++;
-                statusObj.push_back(Pair("node", mne.getAlias()));
+                statusObj.push_back(Pair("node", mne->getAlias()));
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("error", "Can't find masternode by pubkey"));
                 resultsObj.push_back(statusObj);
@@ -465,7 +462,7 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
             CBudgetVote vote(pmn->vin, hash, nVote);
             if(!vote.Sign(keyMasternode, pubKeyMasternode)){
                 failed++;
-                statusObj.push_back(Pair("node", mne.getAlias()));
+                statusObj.push_back(Pair("node", mne->getAlias()));
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("error", "Failure to sign."));
                 resultsObj.push_back(statusObj);
@@ -477,12 +474,12 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
                 budget.mapSeenMasternodeBudgetVotes.insert(make_pair(vote.GetHash(), vote));
                 vote.Relay();
                 success++;
-                statusObj.push_back(Pair("node", mne.getAlias()));
+                statusObj.push_back(Pair("node", mne->getAlias()));
                 statusObj.push_back(Pair("result", "success"));
                 statusObj.push_back(Pair("error", ""));
             } else {
                 failed++;
-                statusObj.push_back(Pair("node", mne.getAlias()));
+                statusObj.push_back(Pair("node", mne->getAlias()));
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("error", strError.c_str()));
             }
@@ -782,10 +779,8 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
         int failed = 0;
 
         UniValue resultsObj(UniValue::VOBJ);
-
-		std::vector<CMasternodeEntry> mnEntries;
 		std::string strErr;
-		mnEntries = masternodeConfig.getEntries(strErr);
+		std::vector<CMasternodeEntry*> mnEntries = masternodeConfig.getEntries(strErr);
 
         for (auto mne: mnEntries) {
             std::string errorMessage;
@@ -799,11 +794,11 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
 
             UniValue statusObj(UniValue::VOBJ);
 
-            if (!obfuScationSigner.SetKey(mne.getPrivKey(), errorMessage, keyMasternode, pubKeyMasternode)) {
+            if (!obfuScationSigner.SetKey(mne->getPrivKey(), errorMessage, keyMasternode, pubKeyMasternode)) {
                 failed++;
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("errorMessage", "Masternode signing error, could not set key correctly: " + errorMessage));
-                resultsObj.push_back(Pair(mne.getAlias(), statusObj));
+                resultsObj.push_back(Pair(mne->getAlias(), statusObj));
                 continue;
             }
 
@@ -812,7 +807,7 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
                 failed++;
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("errorMessage", "Can't find masternode by pubkey"));
-                resultsObj.push_back(Pair(mne.getAlias(), statusObj));
+                resultsObj.push_back(Pair(mne->getAlias(), statusObj));
                 continue;
             }
 
@@ -822,7 +817,7 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
                 failed++;
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("errorMessage", "Failure to sign."));
-                resultsObj.push_back(Pair(mne.getAlias(), statusObj));
+                resultsObj.push_back(Pair(mne->getAlias(), statusObj));
                 continue;
             }
 
@@ -837,7 +832,7 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
                 statusObj.push_back(Pair("result", strError.c_str()));
             }
 
-            resultsObj.push_back(Pair(mne.getAlias(), statusObj));
+            resultsObj.push_back(Pair(mne->getAlias(), statusObj));
         }
 
         UniValue returnObj(UniValue::VOBJ);

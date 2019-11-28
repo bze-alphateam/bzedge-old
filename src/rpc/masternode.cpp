@@ -258,16 +258,15 @@ UniValue startalias(const UniValue& params, bool fHelp)
 
     std::string strAlias = params[0].get_str();
     bool fSuccess = false;
-    std::vector<CMasternodeEntry> mnEntries;
     std::string strErr="";
-    mnEntries = masternodeConfig.getEntries(strErr);
+    std::vector<CMasternodeEntry*> mnEntries = masternodeConfig.getEntries(strErr);
         
     for (auto mne: mnEntries) {
-        if (mne.getAlias() == strAlias) {
+        if (mne->getAlias() == strAlias) {
             std::string strError;
             CMasternodeBroadcast mnb;
 
-            fSuccess = CMasternodeBroadcast::Create(mne.getIp(), mne.getPrivKey(), mne.getTxHash(), mne.getOutputIndex(), strError, mnb);
+            fSuccess = CMasternodeBroadcast::Create(mne->getIp(), mne->getPrivKey(), mne->getTxHash(), mne->getOutputIndex(), strError, mnb);
 
             if (fSuccess) {
                 mnodeman.UpdateMasternodeList(mnb);
@@ -431,14 +430,12 @@ UniValue startmasternode (const UniValue& params, bool fHelp)
         UniValue resultsObj(UniValue::VARR);
         int successful = 0;
         int failed = 0;
-
-		std::vector<CMasternodeEntry> mnEntries;
 		std::string strErr="";
-		mnEntries = masternodeConfig.getEntries(strErr);
+		std::vector<CMasternodeEntry*> mnEntries = masternodeConfig.getEntries(strErr);
         
         for (auto mne: mnEntries) {
             UniValue statusObj(UniValue::VOBJ);
-            statusObj.push_back(Pair("alias", mne.getAlias()));
+            statusObj.push_back(Pair("alias", mne->getAlias()));
             statusObj.push_back(Pair("result", "failed"));
 
             failed++;
@@ -488,16 +485,15 @@ UniValue startmasternode (const UniValue& params, bool fHelp)
         int failed = 0;
 
         UniValue resultsObj(UniValue::VARR);
-		std::vector<CMasternodeEntry> mnEntries;
 		std::string strErr="";
-		mnEntries = masternodeConfig.getEntries(strErr);
+		std::vector<CMasternodeEntry*> mnEntries = masternodeConfig.getEntries(strErr);
 
         for (auto mne: mnEntries) {
             std::string errorMessage;
             int nIndex;
-            if(!mne.castOutputIndex(nIndex))
+            if(!mne->castOutputIndex(nIndex))
                 continue;
-            CTxIn vin = CTxIn(uint256S(mne.getTxHash()), uint32_t(nIndex));
+            CTxIn vin = CTxIn(uint256S(mne->getTxHash()), uint32_t(nIndex));
             CMasternode* pmn = mnodeman.Find(vin);
 
             if (pmn != NULL) {
@@ -505,10 +501,10 @@ UniValue startmasternode (const UniValue& params, bool fHelp)
                 if (strCommand == "disabled" && pmn->IsEnabled()) continue;
             }
 
-            bool result = activeMasternode.Register(mne.getIp(), mne.getPrivKey(), mne.getTxHash(), mne.getOutputIndex(), errorMessage);
+            bool result = activeMasternode.Register(mne->getIp(), mne->getPrivKey(), mne->getTxHash(), mne->getOutputIndex(), errorMessage);
 
             UniValue statusObj(UniValue::VOBJ);
-            statusObj.push_back(Pair("alias", mne.getAlias()));
+            statusObj.push_back(Pair("alias", mne->getAlias()));
             statusObj.push_back(Pair("result", result ? "success" : "failed"));
 
             if (result) {
@@ -543,17 +539,20 @@ UniValue startmasternode (const UniValue& params, bool fHelp)
 
         UniValue resultsObj(UniValue::VARR);
         UniValue statusObj(UniValue::VOBJ);
-        statusObj.push_back(Pair("alias", alias));
 		
 		std::string strErr="";
-		std::vector<CMasternodeEntry> mnEntries = masternodeConfig.getEntries(strErr);
+		std::vector<CMasternodeEntry*> mnEntries = masternodeConfig.getEntries(strErr);
 
         for (auto mne : mnEntries) {
-            if (mne.alias == alias) {
+            statusObj.push_back(Pair("alias", mne->alias.c_str()));
+            
+            //LogPrintf("mn entry %s", mne->ToString());
+
+            if (mne->alias == alias) {
                 found = true;
                 std::string errorMessage;
 
-                bool result = activeMasternode.Register(mne.ip, mne.privKey, mne.txHash, mne.outputIndex, errorMessage);
+                bool result = activeMasternode.Register(mne->ip, mne->privKey, mne->txHash, mne->outputIndex, errorMessage);
 
                 statusObj.push_back(Pair("result", result ? "successful" : "failed"));
 
@@ -670,9 +669,8 @@ UniValue listmasternodeconf (const UniValue& params, bool fHelp)
             "\nExamples:\n" +
             HelpExampleCli("listmasternodeconf", "") + HelpExampleRpc("listmasternodeconf", ""));
 
-    std::vector<CMasternodeEntry> mnEntries;
     std::string strErr="";
-    mnEntries = masternodeConfig.getEntries(strErr);
+    std::vector<CMasternodeEntry*> mnEntries = masternodeConfig.getEntries(strErr);
 
     UniValue ret(UniValue::VARR);
 
@@ -680,24 +678,24 @@ UniValue listmasternodeconf (const UniValue& params, bool fHelp)
     if (mnEntries.size() > 0){
 		for (auto mne: mnEntries){
 			int nIndex;
-			if(!mne.castOutputIndex(nIndex))
+			if(!mne->castOutputIndex(nIndex))
 				continue;
-			CTxIn vin = CTxIn(uint256S(mne.getTxHash()), uint32_t(nIndex));
+			CTxIn vin = CTxIn(uint256S(mne->getTxHash()), uint32_t(nIndex));
 			CMasternode* pmn = mnodeman.Find(vin);
 
 			std::string strStatus = pmn ? pmn->Status() : "MISSING";
 
-			if (strFilter != "" && mne.getAlias().find(strFilter) == string::npos &&
-				mne.getIp().find(strFilter) == string::npos &&
-				mne.getTxHash().find(strFilter) == string::npos &&
+			if (strFilter != "" && mne->getAlias().find(strFilter) == string::npos &&
+				mne->getIp().find(strFilter) == string::npos &&
+				mne->getTxHash().find(strFilter) == string::npos &&
 				strStatus.find(strFilter) == string::npos) continue;
 
 			UniValue mnObj(UniValue::VARR);
-			mnObj.push_back(Pair("alias", mne.getAlias()));
-			mnObj.push_back(Pair("address", mne.getIp()));
-			mnObj.push_back(Pair("privateKey", mne.getPrivKey()));
-			mnObj.push_back(Pair("txHash", mne.getTxHash()));
-			mnObj.push_back(Pair("outputIndex", mne.getOutputIndex()));
+			mnObj.push_back(Pair("alias", mne->getAlias()));
+			mnObj.push_back(Pair("address", mne->getIp()));
+			mnObj.push_back(Pair("privateKey", mne->getPrivKey()));
+			mnObj.push_back(Pair("txHash", mne->getTxHash()));
+			mnObj.push_back(Pair("outputIndex", mne->getOutputIndex()));
 			mnObj.push_back(Pair("status", strStatus));
 			ret.push_back(mnObj);
 		}

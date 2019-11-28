@@ -22,42 +22,37 @@ public:
 	std::string txHash;
 	std::string outputIndex;
 
-	CMasternodeEntry(std::string alias, std::string ip, std::string privKey, std::string txHash, std::string outputIndex)
-	{
-		alias = alias;
-		ip = ip;
-		privKey = privKey;
-		txHash = txHash;
-		outputIndex = outputIndex;
-	}
+	CMasternodeEntry(std::string alias, std::string ip, std::string privKey, std::string txHash, std::string outputIndex);
 
-	const std::string& getAlias() const;
+	const std::string getAlias() const;
 
-	void setAlias(std::string& alias) const;
+	void setAlias(std::string alias) const;
 
-	const std::string& getOutputIndex() const;
+	const std::string getOutputIndex() const;
 
-	bool castOutputIndex(int& n) const;
+	bool castOutputIndex(int n) const;
 
-	void setOutputIndex(std::string& outputIndex) const;
+	void setOutputIndex(std::string outputIndex) const;
 
-	const std::string& getPrivKey() const;
+	const std::string getPrivKey() const;
 
-	void setPrivKey(std::string& privKey) const;
+	void setPrivKey(std::string privKey) const;
 
-	const std::string& getTxHash() const;
+	const std::string getTxHash() const;
 
-	void setTxHash(std::string& txHash) const;
+	void setTxHash(std::string txHash) const;
 
-	const std::string& getIp() const;
+	const std::string getIp() const;
 
-	void setIp(std::string& ip) const;
+	void setIp(std::string ip) const;
+
+    std::string ToString() const;
 };
 
 class CMasternodeConfig
 {
 public:
-    std::vector<CMasternodeEntry> entries;
+    std::vector<CMasternodeEntry*> entries;
 
     CMasternodeConfig()
     {
@@ -67,9 +62,9 @@ public:
     bool read(std::string& strErr);
     void add(std::string alias, std::string ip, std::string privKey, std::string txHash, std::string outputIndex);
     
-    void addEntries(std::string& strErr);
+    void addEntries(std::string strErr);
 
-    std::vector<CMasternodeEntry> getEntries(std::string& strErr);
+    std::vector<CMasternodeEntry*> getEntries(std::string strErr);
 
     int getCount();
 

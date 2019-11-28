@@ -1940,16 +1940,13 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 		
 		std::string strErr="";
 		masternodeConfig.addEntries(strErr);
-		std::vector<CMasternodeEntry> mnEntries = masternodeConfig.entries;
-
-		//if (strErr!="")
-		LogPrintf("alias %s \n", mnEntries[0].alias );
+		std::vector<CMasternodeEntry*> mnEntries = masternodeConfig.getEntries(strErr);
 
 		for (int i = 0; i < mnEntries.size(); i++) {
-			LogPrintf("masternode output found  %s %s \n", mnEntries[i].txHash, mnEntries[i].outputIndex);
-			mnTxHash.SetHex(mnEntries[i].txHash);
-			if (mnEntries[i].outputIndex != ""){
-				COutPoint outpoint = COutPoint(mnTxHash, std::stoi(mnEntries[i].outputIndex));
+			//LogPrintf("masternode output found  %s %s \n", mnEntries[i]->txHash, mnEntries[i]->outputIndex);
+			mnTxHash.SetHex(mnEntries[i]->txHash);
+			if (mnEntries[i]->outputIndex != ""){
+				COutPoint outpoint = COutPoint(mnTxHash, std::stoi(mnEntries[i]->outputIndex));
 				pwalletMain->LockCoin(outpoint);
 			}
 		}		
