@@ -137,6 +137,25 @@ extern bool fImporting;
 extern bool fReindex;
 extern int nScriptCheckThreads;
 extern bool fTxIndex;
+
+// START insightexplorer
+extern bool fInsightExplorer;
+
+// The following flags enable specific indices (DB tables), but are not exposed as
+// separate command-line options; instead they are enabled by experimental feature "-insightexplorer"
+// and are always equal to the overall controlling flag, fInsightExplorer.
+
+// Maintain a full address index, used to query for the balance, txids and unspent outputs for addresses
+extern bool fAddressIndex;
+
+// Maintain a full spent index, used to query the spending txid and input index for an outpoint
+extern bool fSpentIndex;
+
+// Maintain a full timestamp index, used to query for blocks within a time range
+extern bool fTimestampIndex;
+
+// END insightexplorer
+
 extern bool fIsBareMultisigStd;
 extern bool fCheckBlockIndex;
 extern bool fCheckpointsEnabled;

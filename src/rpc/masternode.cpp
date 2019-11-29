@@ -674,37 +674,33 @@ UniValue listmasternodeconf (const UniValue& params, bool fHelp)
 
     UniValue ret(UniValue::VARR);
 
-    //BOOST_FOREACH (CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
-    if (mnEntries.size() > 0){
-		for (auto mne: mnEntries){
-			int nIndex;
-			if(!mne->castOutputIndex(nIndex))
-				continue;
-			CTxIn vin = CTxIn(uint256S(mne->getTxHash()), uint32_t(nIndex));
-			CMasternode* pmn = mnodeman.Find(vin);
+    LogPrintf("entries size : %d  \n", mnEntries.size());
 
-			std::string strStatus = pmn ? pmn->Status() : "MISSING";
+	for (auto mne: mnEntries){
+		int nIndex;
 
-			if (strFilter != "" && mne->getAlias().find(strFilter) == string::npos &&
-				mne->getIp().find(strFilter) == string::npos &&
-				mne->getTxHash().find(strFilter) == string::npos &&
-				strStatus.find(strFilter) == string::npos) continue;
+		if(!mne->castOutputIndex(nIndex))
+			continue;
 
-			UniValue mnObj(UniValue::VARR);
-			mnObj.push_back(Pair("alias", mne->getAlias()));
-			mnObj.push_back(Pair("address", mne->getIp()));
-			mnObj.push_back(Pair("privateKey", mne->getPrivKey()));
-			mnObj.push_back(Pair("txHash", mne->getTxHash()));
-			mnObj.push_back(Pair("outputIndex", mne->getOutputIndex()));
-			mnObj.push_back(Pair("status", strStatus));
-			ret.push_back(mnObj);
-		}
-    }
-    else {
-		ret.push_back(Pair("entries", mnEntries.size()));
-		ret.push_back(Pair("entries", strErr.c_str()));	
+		CTxIn vin = CTxIn(uint256S(mne->getTxHash()), uint32_t(nIndex));
+		CMasternode* pmn = mnodeman.Find(vin);
+
+		std::string strStatus = pmn ? pmn->Status() : "MISSING";
+
+		if (strFilter != "" && mne->getAlias().find(strFilter) == string::npos &&
+			mne->getIp().find(strFilter) == string::npos &&
+			mne->getTxHash().find(strFilter) == string::npos &&
+			strStatus.find(strFilter) == string::npos) continue;
+
+		UniValue mnObj(UniValue::VARR);
+		mnObj.push_back(Pair("alias", mne->getAlias()));
+		mnObj.push_back(Pair("address", mne->getIp()));
+		mnObj.push_back(Pair("privateKey", mne->getPrivKey()));
+		mnObj.push_back(Pair("txHash", mne->getTxHash()));
+		mnObj.push_back(Pair("outputIndex", mne->getOutputIndex()));
+		mnObj.push_back(Pair("status", strStatus));
+		ret.push_back(mnObj);
 	}
-
     return ret;
 }
 

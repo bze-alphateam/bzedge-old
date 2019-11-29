@@ -1407,6 +1407,8 @@ static const CRPCCommand commands[] =
     { "util",               "z_validateaddress",      &z_validateaddress,      true  }, /* uses wallet if enabled */
     { "util",               "createmultisig",         &createmultisig,         true  },
     { "util",               "verifymessage",          &verifymessage,          true  },
+
+    // START insightexplorer
     /* Address index */
     { "addressindex",       "getaddresstxids",        &getaddresstxids,        false }, /* insight explorer */
     { "addressindex",       "getaddressbalance",      &getaddressbalance,      false }, /* insight explorer */

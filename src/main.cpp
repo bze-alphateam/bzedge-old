@@ -75,6 +75,7 @@ bool fExperimentalMode = false;
 bool fImporting = false;
 bool fReindex = false;
 bool fTxIndex = false;
+bool fInsightExplorer = false;  // insightexplorer
 bool fAddressIndex = false;
 bool fTimestampIndex = false;
 bool fSpentIndex = false;

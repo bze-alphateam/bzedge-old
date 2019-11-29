@@ -295,3 +295,33 @@ std::string CScript::ToString() const
     }
     return str;
 }
+
+// insightexplorer
+CScript::ScriptType CScript::GetType() const
+{
+    if (this->IsPayToPublicKeyHash())
+        return CScript::P2PKH;
+    if (this->IsPayToScriptHash())
+        return CScript::P2SH;
+    // We don't know this script type
+    return CScript::UNKNOWN;
+}
+
+// insightexplorer
+uint160 CScript::AddressHash() const
+{
+    // where the address bytes begin depends on the script type
+    int start;
+    if (this->IsPayToPublicKeyHash())
+        start = 3;
+    else if (this->IsPayToScriptHash())
+        start = 2;
+    else {
+        // unknown script type; return zeros (this can happen)
+        vector<unsigned char> hashBytes;
+        hashBytes.resize(20);
+        return uint160(hashBytes);
+    }
+    vector<unsigned char> hashBytes(this->begin()+start, this->begin()+start+20);
+    return uint160(hashBytes);
+}

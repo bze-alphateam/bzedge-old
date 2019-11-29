@@ -872,13 +872,14 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     if (!fExperimentalMode) {
         if (mapArgs.count("-developerencryptwallet")) {
             return InitError(_("Wallet encryption requires -experimentalfeatures."));
-        }
-        else if (mapArgs.count("-paymentdisclosure")) {
-            return InitError(_("Payment disclosure requires -experimentalfeatures."));
         } else if (mapArgs.count("-zmergetoaddress")) {
             return InitError(_("RPC method z_mergetoaddress requires -experimentalfeatures."));
         } else if (mapArgs.count("-savesproutr1cs")) {
             return InitError(_("Saving the Sprout R1CS requires -experimentalfeatures."));
+        } else if (mapArgs.count("-paymentdisclosure")) {
+            return InitError(_("Payment disclosure requires -experimentalfeatures."));
+        } else if (mapArgs.count("-insightexplorer")) {
+            return InitError(_("Insight explorer requires -experimentalfeatures."));
         }
     }
 
@@ -1490,6 +1491,15 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     int64_t nBlockTreeDBCache = nTotalCache / 8;
     if (nBlockTreeDBCache > (1 << 21) && !GetBoolArg("-txindex", false))
         nBlockTreeDBCache = (1 << 21); // block tree db cache shouldn't be larger than 2 MiB
+
+    // https://github.com/bitpay/bitcoin/commit/c91d78b578a8700a45be936cb5bb0931df8f4b87#diff-c865a8939105e6350a50af02766291b7R1233
+    if (GetBoolArg("-insightexplorer", false)) {
+        if (!GetBoolArg("-txindex", false)) {
+            return InitError(_("-insightexplorer requires -txindex."));
+        }
+        // increase cache if additional indices are needed
+        nBlockTreeDBCache = nTotalCache * 3 / 4;
+    }
     nTotalCache -= nBlockTreeDBCache;
     int64_t nCoinDBCache = std::min(nTotalCache / 2, (nTotalCache / 4) + (1 << 23)); // use 25%-50% of the remainder for disk cache
     nTotalCache -= nCoinDBCache;
@@ -1554,6 +1564,12 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
                 // Check for changed -txindex state
                 if (fTxIndex != GetBoolArg("-txindex", false)) {
                     strLoadError = _("You need to rebuild the database using -reindex to change -txindex");
+                    break;
+                }
+
+                // Check for changed -prune state.  What we are concerned about is a user who has pruned blocks
+                if (fInsightExplorer != GetBoolArg("-insightexplorer", false)) {
+                    strLoadError = _("You need to rebuild the database using -reindex to change -insightexplorer");
                     break;
                 }
 
