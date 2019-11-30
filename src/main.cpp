@@ -877,7 +877,7 @@ unsigned int GetP2SHSigOpCount(const CTransaction& tx, const CCoinsViewCache& in
 
 /**
  * Check a transaction contextually against a set of consensus rules valid at a given block height.
- * 
+ *
  * Notes:
  * 1. AcceptToMemoryPool calls CheckTransaction and this function.
  * 2. ProcessNewBlock calls AcceptBlock, which calls CheckBlock (which calls CheckTransaction)
@@ -955,7 +955,7 @@ bool ContextualCheckTransaction(
             return state.DoS(dosLevel, error("ContextualCheckTransaction: overwinter is active"),
                             REJECT_INVALID, "tx-overwinter-active");
         }
-    
+
         // Check that all transactions are unexpired
         if (IsExpiredTx(tx, nHeight)) {
             // Don't increase banscore if the transaction only just expired
@@ -1712,7 +1712,7 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos)
     }
 
     // Check the header
-    if (block.GetHash() != Params().GenesisBlock().GetHash()) // genesis solution validation skipped 
+    if (block.GetHash() != Params().GenesisBlock().GetHash()) // genesis solution validation skipped
     {
 		if (!(CheckEquihashSolution(&block, Params()) &&
 			  CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus())))
@@ -1750,28 +1750,32 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
     }
 
     assert(nHeight > consensusParams.SubsidySlowStartShift());
-    
+
 	if ( nHeight < 200001 ) nSubsidy = (12500 * COIN);
-    else if ( nHeight < 300001 ) nSubsidy = (2500 * COIN); //Above block 200,000 we re-target to 1 minute interval. 
+    else if ( nHeight < 300001 ) nSubsidy = (2500 * COIN); //Above block 200,000 we re-target to 1 minute interval.
     else if ( nHeight < 400001 ) nSubsidy = (1250 * COIN);
     else if ( nHeight < 500001 ) nSubsidy = (625 * COIN);
     else if ( nHeight < 600001 ) nSubsidy = (312.5 * COIN);
     else if ( nHeight < 700001 ) nSubsidy = (156.25 * COIN);
     else if ( nHeight < 800001 ) nSubsidy = (78 * COIN);
-    else if ( nHeight < 900001 ) nSubsidy = (39 * COIN);
-    else if ( nHeight < 1000001 ) nSubsidy = (19.5 * COIN);
-    else if ( nHeight < 3102401 ) nSubsidy = (8 * COIN);
+    else if ( nHeight < 1300001 ) nSubsidy = (39 * COIN);
+    else if ( nHeight < 1800001 ) nSubsidy = (19.5 * COIN);
+    else if ( nHeight < 2300001 ) nSubsidy = (8 * COIN);
+    else if ( nHeight < 2800001 ) nSubsidy = (4 * COIN);
+    else if ( nHeight < 3300001 ) nSubsidy = (2 * COIN);
+    else if ( nHeight < 4875000 ) nSubsidy = (1 * COIN);
     else {
-        int halvings = (nHeight - 3102400) / consensusParams.nSubsidyHalvingInterval;
-        
+        //what's happening here ? ?
+        int halvings = (nHeight - 4875000) / consensusParams.nSubsidyHalvingInterval;
+
         nSubsidy = 4 * COIN;
-        
+
         if (nSubsidy >= 64) {
             nSubsidy = 0;
         } else {
-        	nSubsidy >>= halvings;
+            nSubsidy >>= halvings;
         }
-        
+
     }
     return nSubsidy;
 }
@@ -3490,7 +3494,7 @@ bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, bool f
     if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus()))
         return state.DoS(50, error("CheckBlockHeader(): proof of work failed"),
                          REJECT_INVALID, "high-hash");
-                         
+
     unsigned int nHeight = chainActive.Height();
     const CChainParams& chainParams = Params();
 
@@ -3498,7 +3502,7 @@ bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, bool f
     if (block.GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)
         return state.Invalid(error("CheckBlockHeader(): block timestamp too far in the future"),
                              REJECT_INVALID, "time-too-new");
-    
+
      // starting at height 159300, decrease to 30 minute window to decrease effectiveness of timewarp attack.
     else if (nHeight >= chainParams.GetNewTimeRule() && block.GetBlockTime() > GetAdjustedTime() + 15 * 60)
         return state.Invalid(error("CheckBlockHeader(): block timestamp too far in the future"),
@@ -3743,7 +3747,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
 
     // See method docstring for why this is always disabled
     auto verifier = libzcash::ProofVerifier::Disabled();
-    
+
     bool fCheckPOW = (pindex->nHeight != 0);
     if ((!CheckBlock(block, state, verifier, fCheckPOW, true)) || !ContextualCheckBlock(block, state, pindex->pprev)) {
         if (state.IsInvalid() && !state.CorruptionPossible()) {
