@@ -133,7 +133,7 @@ public:
         consensus.nMajorityWindow = 4000;
         consensus.powLimit = uint256S("0007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowAveragingWindow = 13;
-        consensus.nMasternodePaymentsStartBlock = 850000;
+        consensus.nMasternodePaymentsStartBlock = 883000;
 
         assert(maxUint/UintToArith256(consensus.powLimit) >= consensus.nPowAveragingWindow);
         consensus.nPowMaxAdjustDown = 34;
@@ -150,7 +150,7 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight = 484000;
         consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nProtocolVersion = 175017;
         consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nActivationHeight = 484000;
-        consensus.vUpgrades[Consensus::UPGRADE_ALFHEIMR].nActivationHeight = 850000;
+        consensus.vUpgrades[Consensus::UPGRADE_ALFHEIMR].nActivationHeight = 883000;
         consensus.vUpgrades[Consensus::UPGRADE_ALFHEIMR].nProtocolVersion = 175018;
 
         // The best chain should have at least this much work.
@@ -273,7 +273,7 @@ public:
         strObfuscationPoolDummyAddress = "t1cW3eB2pruAMdfc7nu5nSbEcRqdGNMup3s";
         nStartMasternodePayments = 1574683200; //2018-04-15
         nBudget_Fee_Confirmations = 6; // Number of confirmations for the finalization fee
-        masternodeProtectionBlock = 850000;
+        masternodeProtectionBlock = 883000;
         masternodeCollateral = 10000;
     }
 };
