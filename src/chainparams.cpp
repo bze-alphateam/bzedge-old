@@ -274,7 +274,7 @@ public:
         nStartMasternodePayments = 1574683200; //2018-04-15
         nBudget_Fee_Confirmations = 6; // Number of confirmations for the finalization fee
         masternodeProtectionBlock = 883000;
-        masternodeCollateral = 10000;
+        masternodeCollateral = 250000;
     }
 };
 static CMainParams mainParams;
