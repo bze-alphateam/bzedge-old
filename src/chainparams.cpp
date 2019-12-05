@@ -314,7 +314,7 @@ public:
         // consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nActivationHeight = 235000; // original testnet
         consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nActivationHeight = 200; // private testnet
         consensus.vUpgrades[Consensus::UPGRADE_ALFHEIMR].nActivationHeight = 17000;
-        consensus.vUpgrades[Consensus::UPGRADE_ALFHEIMR].nProtocolVersion = 175013;
+        consensus.vUpgrades[Consensus::UPGRADE_ALFHEIMR].nProtocolVersion = 175018;
 		
         consensus.nMasternodePaymentsStartBlock = 17000;
 		
