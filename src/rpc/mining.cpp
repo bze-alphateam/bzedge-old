@@ -742,8 +742,9 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     result.push_back(Pair("height", nextHeight));
     result.push_back(Pair("votes", aVotes));
 
+    bool isMNActive = (nextHeight >= Params().GetMasternodeProtectionBlock());
 
-    if(pblock->payee != CScript()){
+    if((pblock->payee != CScript()) && isMNActive){
         CTxDestination address1;
         ExtractDestination(pblock->payee, address1);
 
@@ -755,7 +756,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         result.push_back(Pair("payee_amount", ""));
     }
 
-    result.push_back(Pair("masternode_payments", nextHeight >= Params().GetMasternodeProtectionBlock() ? "true" : "false"));
+    result.push_back(Pair("masternode_payments", isMNActive ? "true" : "false"));
     result.push_back(Pair("enforce_masternode_payments", true));
 
     return result;
