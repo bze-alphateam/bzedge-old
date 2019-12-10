@@ -20,6 +20,7 @@
 #include "key_io.h"
 #include "main.h"
 #include "metrics.h"
+#include "masternode-sync.h"
 #include "net.h"
 #include "pow.h"
 #include "primitives/transaction.h"
@@ -31,7 +32,8 @@
 #ifdef ENABLE_WALLET
 #include "wallet/wallet.h"
 #endif
-
+#include "masternode-payments.h"
+#include "spork.h"
 #include "sodium.h"
 
 #include <boost/thread.hpp>
@@ -356,12 +358,14 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
         txNew.vin[0].prevout.SetNull();
         txNew.vout.resize(1);
         txNew.vout[0].scriptPubKey = scriptPubKeyIn;
-        txNew.vout[0].nValue = GetBlockSubsidy(nHeight, chainparams.GetConsensus());
-        // Set to 0 so expiry height does not apply to coinbase txs
         txNew.nExpiryHeight = 0;
 
-        // Add fees
-        txNew.vout[0].nValue += nFees;
+        // Masternode and general budget payments
+        FillBlockPayee(txNew, nFees);
+
+        // Make payee
+        pblock->payee = txNew.vout[txNew.vout.size() - 1].scriptPubKey;
+
         txNew.vin[0].scriptSig = CScript() << nHeight << OP_0;
 
         pblock->vtx[0] = txNew;
@@ -556,6 +560,7 @@ void static BitcoinMiner()
 
            // Get the height of current tip
             int nHeight = chainActive.Height();
+            int nTime = chainActive.Tip()->nTime;
             if (nHeight == -1) {
                 LogPrintf("Error in BitcoinZ Miner: chainActive.Height() returned -1\n");
                 return;

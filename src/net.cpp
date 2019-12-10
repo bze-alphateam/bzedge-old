@@ -13,10 +13,12 @@
 #include "addrman.h"
 #include "chainparams.h"
 #include "clientversion.h"
+#include "obfuscation.h"
 #include "primitives/transaction.h"
 #include "scheduler.h"
 #include "ui_interface.h"
 #include "crypto/common.h"
+#include "masternodeman.h"
 
 #ifdef WIN32
 #include <string.h>
@@ -70,6 +72,7 @@ static bool vfLimited[NET_MAX] = {};
 static CNode* pnodeLocalHost = NULL;
 uint64_t nLocalHostNonce = 0;
 static std::vector<ListenSocket> vhListenSocket;
+static list<CNode*> vNodesDisconnected;
 CAddrMan addrman;
 int nMaxConnections = DEFAULT_MAX_PEER_CONNECTIONS;
 bool fAddressesInitialized = false;
@@ -353,16 +356,19 @@ CNode* FindNode(const CService& addr)
     return NULL;
 }
 
-CNode* ConnectNode(CAddress addrConnect, const char *pszDest)
+CNode* ConnectNode(CAddress addrConnect, const char* pszDest, bool obfuScationMaster)
 {
     if (pszDest == NULL) {
-        if (IsLocal(addrConnect))
+        // we clean masternode connections in CMasternodeMan::ProcessMasternodeConnections()
+        // so should be safe to skip this and connect to local Hot MN on CActiveMasternode::ManageStatus()
+        if (IsLocal(addrConnect) && !obfuScationMaster)
             return NULL;
 
         // Look for an existing connection
         CNode* pnode = FindNode((CService)addrConnect);
-        if (pnode)
-        {
+        if (pnode) {
+            pnode->fObfuScationMaster = obfuScationMaster;
+
             pnode->AddRef();
             return pnode;
         }
@@ -372,6 +378,21 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest)
     LogPrint("net", "trying connection %s lastseen=%.1fhrs\n",
         pszDest ? pszDest : addrConnect.ToString(),
         pszDest ? 0.0 : (double)(GetAdjustedTime() - addrConnect.nTime)/3600.0);
+
+    //masternode protection code
+    if(masternodeSync.GetSyncValue() == MASTERNODE_SYNC_FINISHED && GetBoolArg("-masternodeconnections", false))
+    {
+        CMasternode* mn = mnodeman.Find(addrConnect);
+        if(mn == NULL)
+        {
+            LogPrint("net", "create connection fail, address %s is not in masternode list\n", addrConnect.ToString());
+            return NULL;
+        }
+    }
+    else
+    {
+        LogPrint("net", "masternode list is not synced or masternode protection flag is not enabled\n");
+    }
 
     // Connect
     SOCKET hSocket;
@@ -406,6 +427,25 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest)
     }
 
     return NULL;
+}
+
+void DisconnectNodes()
+{
+    // Close sockets
+    BOOST_FOREACH(CNode* pnode, vNodes)
+        if (pnode->hSocket != INVALID_SOCKET)
+        {
+            CMasternode* mn = mnodeman.Find(pnode->addr);
+            if(mn == NULL)
+            {
+                pnode->fDisconnect = true;
+                LogPrintf("disconnect %s\n", pnode->addr.ToString());
+            }
+            else
+            {
+                LogPrintf("do not disconnect %s\n", pnode->addr.ToString());
+            }
+        }
 }
 
 void CNode::CloseSocketDisconnect()
@@ -710,8 +750,6 @@ void SocketSendData(CNode *pnode)
     pnode->vSendMsg.erase(pnode->vSendMsg.begin(), it);
 }
 
-static list<CNode*> vNodesDisconnected;
-
 class CNodeRef {
 public:
     CNodeRef(CNode *pnode) : _pnode(pnode) {
@@ -924,6 +962,22 @@ static void AcceptConnection(const ListenSocket& hListenSocket) {
         if (nErr != WSAEWOULDBLOCK)
             LogPrintf("socket error accept failed: %s\n", NetworkErrorString(nErr));
         return;
+    }
+
+    //masternode protection code
+    if(masternodeSync.GetSyncValue() == MASTERNODE_SYNC_FINISHED && GetBoolArg("-masternodeconnections", false))
+    {
+        CMasternode* mn = mnodeman.Find(addr);
+        if(mn == NULL)
+        {
+            LogPrint("net", "socket error accept failed, address %s is not in masternode list\n", addr.ToString());
+            CloseSocket(hSocket);
+            return;
+        }
+    }
+    else
+    {
+        LogPrint("net", "masternode list is not synced or masternode protection flag is not enabled\n");
     }
 
     if (!IsSelectableSocket(hSocket))
@@ -1892,6 +1946,30 @@ void RelayTransaction(const CTransaction& tx, const CDataStream& ss)
     }
 }
 
+void RelayTransactionLockReq(const CTransaction& tx, bool relayToAll)
+{
+    CInv inv(MSG_TXLOCK_REQUEST, tx.GetHash());
+
+    //broadcast the new lock
+    LOCK(cs_vNodes);
+    BOOST_FOREACH (CNode* pnode, vNodes) {
+        if (!relayToAll && !pnode->fRelayTxes)
+            continue;
+
+        pnode->PushMessage("ix", tx);
+    }
+}
+
+void RelayInv(CInv& inv)
+{
+    LOCK(cs_vNodes);
+    BOOST_FOREACH (CNode* pnode, vNodes){
+    		if((pnode->nServices==NODE_BLOOM_WITHOUT_MN) && inv.IsMasterNodeType())continue;
+        if (pnode->nVersion >= ActiveProtocol())
+            pnode->PushInventory(inv);
+    }
+}
+
 void CNode::RecordBytesRecv(uint64_t bytes)
 {
     LOCK(cs_totalBytesRecv);
@@ -2093,6 +2171,7 @@ CNode::CNode(SOCKET hSocketIn, const CAddress& addrIn, const std::string& addrNa
     nPingUsecStart = 0;
     nPingUsecTime = 0;
     fPingQueued = false;
+    fObfuScationMaster = false;
     nMinPingUsecTime = std::numeric_limits<int64_t>::max();
 
     {

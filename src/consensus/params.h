@@ -26,6 +26,7 @@ enum UpgradeIndex {
     UPGRADE_TESTDUMMY,
     UPGRADE_OVERWINTER,
     UPGRADE_SAPLING,
+    UPGRADE_ALFHEIMR,
     // NOTE: Also add new upgrades to NetworkUpgradeInfo in upgrades.cpp
     MAX_NETWORK_UPGRADES
 };
@@ -99,6 +100,7 @@ struct Params {
     int64_t nPowMaxAdjustDown;
     int64_t nPowMaxAdjustUp;
     int64_t nPowTargetSpacing;
+    int nMasternodePaymentsStartBlock;
     int64_t AveragingWindowTimespan() const { return nPowAveragingWindow * ZCnPowTargetSpacing; }
     int64_t MinActualTimespan() const { return (AveragingWindowTimespan() * (100 - nPowMaxAdjustUp  )) / 100; }
     int64_t MaxActualTimespan() const { return (AveragingWindowTimespan() * (100 + nPowMaxAdjustDown)) / 100; }

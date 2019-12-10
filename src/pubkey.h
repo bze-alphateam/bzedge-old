@@ -123,6 +123,10 @@ public:
     }
 
     //! Implement serialization, as if this was a byte vector.
+    unsigned int GetSerializeSize(int nType, int nVersion) const
+    {
+        return size() + 1;
+    }
     template <typename Stream>
     void Serialize(Stream& s) const
     {

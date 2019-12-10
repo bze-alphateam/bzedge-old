@@ -17,6 +17,7 @@
 #include <boost/thread.hpp>
 #include <boost/thread/synchronized_value.hpp>
 #include <string>
+
 #ifdef WIN32
 #include <io.h>
 #else
@@ -84,8 +85,6 @@ static boost::synchronized_value<std::list<uint256>> trackedBlocks;
 static boost::synchronized_value<std::list<std::string>> messageBox;
 static boost::synchronized_value<std::string> initMessage;
 static bool loaded = false;
-
-extern int64_t GetNetworkHashPS(int lookup, int height);
 
 void TrackMinedBlock(uint256 hash)
 {

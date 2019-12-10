@@ -8,6 +8,16 @@
 #include "tinyformat.h"
 #include "utilstrencodings.h"
 
+namespace {
+inline std::string ValueString(const std::vector<unsigned char>& vch)
+{
+    if (vch.size() <= 4)
+        return strprintf("%d", CScriptNum(vch, false).getint());
+    else
+        return HexStr(vch);
+}
+} // anon namespace
+
 using namespace std;
 
 const char* GetOpName(opcodetype opcode)
@@ -201,6 +211,41 @@ unsigned int CScript::GetSigOpCount(const CScript& scriptSig) const
     return subscript.GetSigOpCount(true);
 }
 
+bool CScript::IsNormalPaymentScript() const
+{
+    if(this->size() != 25) return false;
+
+    std::string str;
+    opcodetype opcode;
+    const_iterator pc = begin();
+    int i = 0;
+    while (pc < end())
+    {
+        GetOp(pc, opcode);
+
+        if(     i == 0 && opcode != OP_DUP) return false;
+        else if(i == 1 && opcode != OP_HASH160) return false;
+        else if(i == 3 && opcode != OP_EQUALVERIFY) return false;
+        else if(i == 4 && opcode != OP_CHECKSIG) return false;
+        else if(i == 5) return false;
+
+        i++;
+    }
+
+    return true;
+}
+
+bool CScript::IsPayToPublicKeyHash() const
+{
+    // Extra-fast test for pay-to-pubkey-hash CScripts:
+    return (this->size() == 25 &&
+	    (*this)[0] == OP_DUP &&
+	    (*this)[1] == OP_HASH160 &&
+	    (*this)[2] == 0x14 &&
+	    (*this)[23] == OP_EQUALVERIFY &&
+	    (*this)[24] == OP_CHECKSIG);
+}
+
 bool CScript::IsPayToScriptHash() const
 {
     // Extra-fast test for pay-to-script-hash CScripts:
@@ -226,4 +271,57 @@ bool CScript::IsPushOnly() const
             return false;
     }
     return true;
+}
+
+std::string CScript::ToString() const
+{
+    std::string str;
+    opcodetype opcode;
+    std::vector<unsigned char> vch;
+    const_iterator pc = begin();
+    while (pc < end())
+    {
+        if (!str.empty())
+            str += " ";
+        if (!GetOp(pc, opcode, vch))
+        {
+            str += "[error]";
+            return str;
+        }
+        if (0 <= opcode && opcode <= OP_PUSHDATA4)
+            str += ValueString(vch);
+        else
+            str += GetOpName(opcode);
+    }
+    return str;
+}
+
+// insightexplorer
+CScript::ScriptType CScript::GetType() const
+{
+    if (this->IsPayToPublicKeyHash())
+        return CScript::P2PKH;
+    if (this->IsPayToScriptHash())
+        return CScript::P2SH;
+    // We don't know this script type
+    return CScript::UNKNOWN;
+}
+
+// insightexplorer
+uint160 CScript::AddressHash() const
+{
+    // where the address bytes begin depends on the script type
+    int start;
+    if (this->IsPayToPublicKeyHash())
+        start = 3;
+    else if (this->IsPayToScriptHash())
+        start = 2;
+    else {
+        // unknown script type; return zeros (this can happen)
+        vector<unsigned char> hashBytes;
+        hashBytes.resize(20);
+        return uint160(hashBytes);
+    }
+    vector<unsigned char> hashBytes(this->begin()+start, this->begin()+start+20);
+    return uint160(hashBytes);
 }
