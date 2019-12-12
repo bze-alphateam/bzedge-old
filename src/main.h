@@ -274,7 +274,7 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams);
  * @param[out]   setFilesToPrune   The set of file indices that can be unlinked will be returned
  */
 void FindFilesToPrune(std::set<int>& setFilesToPrune);
-int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount = 0);
+int64_t GetMasternodePayment(int nHeight, int64_t blockValue);
 /**
  *  Actually unlink the specified files
  */

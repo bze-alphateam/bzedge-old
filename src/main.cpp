@@ -2107,7 +2107,7 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
     return nSubsidy;
 }
 
-int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount)
+int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 {
     int64_t ret = blockValue * 0.35; //default: 35%
     return ret;
@@ -4184,6 +4184,9 @@ bool CheckBlock(const CBlock& block, CValidationState& state,
                 LogPrintf("CheckBlock(): Masternode payment check skipped on sync - skipping IsBlockPayeeValid()\n");
         }
     }
+
+    //@TODO: why do we iterate two times through transactions? We can do all the math inside first foreach. 
+    // Leave a comment below if there's a real reason. Otherwise refactor it ! 
     // Check transactions
     BOOST_FOREACH(const CTransaction& tx, block.vtx)
         if (!CheckTransaction(tx, state, verifier))
