@@ -33,6 +33,8 @@
 
 #include <univalue.h>
 
+#include "masternodeman.h"
+
 using namespace std;
 
 /**
@@ -742,7 +744,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     result.push_back(Pair("height", nextHeight));
     result.push_back(Pair("votes", aVotes));
 
-    bool isMNActive = (nextHeight >= Params().GetMasternodeProtectionBlock());
+    bool isMNActive = (nextHeight >= Params().GetMasternodeProtectionBlock() && mnodeman.CountEnabled() > 0);
 
     if((pblock->payee != CScript()) && isMNActive){
         CTxDestination address1;
