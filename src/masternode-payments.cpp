@@ -318,7 +318,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
         CTxDestination address1;
         ExtractDestination(payee, address1);
 
-        LogPrint("masternode","Masternode payment to %s\n", EncodeDestination(address1));
+        LogPrint("masternode","Masternode P-payment to %s\n", EncodeDestination(address1));
     }
 
 }

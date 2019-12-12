@@ -530,7 +530,7 @@ void CBudgetManager::FillBlockPayee(CMutableTransaction& txNew, CAmount nFees)
         CTxDestination address1;
         ExtractDestination(payee, address1);
 
-        LogPrintf("Masternode payment to %s\n", EncodeDestination(address1));
+        LogPrintf("Masternode B-payment to %s\n", EncodeDestination(address1));
     }
 }
 
