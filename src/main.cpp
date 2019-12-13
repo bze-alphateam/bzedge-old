@@ -4298,23 +4298,6 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, CBlockIn
         }
     }
 
-    // Coinbase transaction must include an output sending % of
-    // the block reward to MN winner
-    if (nHeight >= Params().GetMasternodeProtectionBlock()) {
-        bool found = false;
-
-        BOOST_FOREACH(const CTxOut& output, block.vtx[0].vout) {
-            if (output.nValue == GetMasternodePayment(nHeight, GetBlockSubsidy(nHeight, consensusParams))) {
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            return state.DoS(100, error("%s: MN reward missing", __func__), REJECT_INVALID, "cb-no-mn-reward");
-        }
-    }
-
     return true;
 }
 
@@ -5898,7 +5881,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         CAddress addrFrom;
         uint64_t nNonce = 1;
         vRecv >> pfrom->nVersion >> pfrom->nServices >> nTime >> addrMe;
-        if ((pfrom->nVersion < MIN_PEER_PROTO_VERSION || pfrom->nVersion > MAX_PEER_PROTO_VERSION ) && chainActive.Height() > chainparams.GetMasternodeProtectionBlock())
+        if ((pfrom->nVersion < MIN_PEER_PROTO_VERSION || pfrom->nVersion > MAX_PEER_PROTO_VERSION ) && chainActive.Height() >= chainparams.GetMasternodeProtectionBlock())
         {
             // disconnect from peers older than this proto version
             LogPrintf("peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
