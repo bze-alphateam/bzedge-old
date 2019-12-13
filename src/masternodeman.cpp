@@ -1200,6 +1200,20 @@ void CMasternodeMan::UpdateMasternodeList(CMasternodeBroadcast mnb)
     }
 }
 
+bool CMasternodeMan::HasEnabledMasternode(int protocolVersion)
+{
+    protocolVersion = protocolVersion == -1 ? masternodePayments.GetMinMasternodePaymentsProto() : protocolVersion;
+
+    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+        mn.Check();
+        if (mn.protocolVersion < protocolVersion || !mn.IsEnabled()) continue;
+
+        return true;
+    }
+
+    return false;
+}
+
 std::string CMasternodeMan::ToString() const
 {
     std::ostringstream info;
