@@ -744,7 +744,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     result.push_back(Pair("height", nextHeight));
     result.push_back(Pair("votes", aVotes));
 
-    bool shouldPayMN = (nextHeight >= Params().GetMasternodeProtectionBlock() && mnodeman.HasEnabledMasternode());
+    bool shouldPayMN = (nextHeight >= Params().GetMasternodeProtectionBlock()) && mnodeman.HasEnabledMasternode();
 
     if((pblock->payee != CScript()) && shouldPayMN) {
         CTxDestination address1;
