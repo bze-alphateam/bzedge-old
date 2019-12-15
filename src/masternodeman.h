@@ -157,6 +157,8 @@ public:
 
     /// Update masternode list and maps using provided CMasternodeBroadcast
     void UpdateMasternodeList(CMasternodeBroadcast mnb);
+
+    bool HasEnabledMasternode(int protocolVersion = -1);
 };
 
 #endif
