@@ -6912,7 +6912,7 @@ bool ProcessMessages(CNode* pfrom)
             if (strstr(e.what(), "end of data"))
             {
                 // Allow exceptions from under-length message on vRecv
-                LogPrintf("%s(%s, %u bytes): Exception '%s' caught, normally caused by a message being shorter than its stated length\n", __func__, SanitizeString(strCommand), nMessageSize, e.what());
+                LogPrintf("%s(%s, %u bytes): Exception '%s' caught, normally caused by a message being shorter than its stated length, command = %s\n", __func__, SanitizeString(strCommand), nMessageSize, e.what(), strCommand.c_str());
             }
             else if (strstr(e.what(), "size too large"))
             {
