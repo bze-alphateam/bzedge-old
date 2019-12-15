@@ -108,6 +108,8 @@ map<uint256, set<uint256> > mapOrphanTransactionsByPrev GUARDED_BY(cs_main);;
 map<uint256, int64_t> mapRejectedBlocks  GUARDED_BY(cs_main);;
 void EraseOrphansFor(NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
+static const unsigned int DEFAULT_REORG_MN_CHECK = 10;
+
 /**
  * Returns true if there are nRequired or more blocks of minVersion or above
  * in the last Consensus::Params::nMajorityWindow blocks, starting at pstart and going backwards.
@@ -2105,7 +2107,7 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
     return nSubsidy;
 }
 
-int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount)
+int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 {
     int64_t ret = blockValue * 0.35; //default: 35%
     return ret;
@@ -3518,7 +3520,7 @@ bool DisconnectBlocksAndReprocess(int blocks)
 static CBlockIndex* FindMostWorkChain() {
     do {
         CBlockIndex *pindexNew = NULL;
-
+        CBlockIndex *pindexOldTip = chainActive.Tip();
         // Find the best candidate header.
         {
             std::set<CBlockIndex*, CBlockIndexWorkComparator>::reverse_iterator it = setBlockIndexCandidates.rbegin();
@@ -3540,14 +3542,47 @@ static CBlockIndex* FindMostWorkChain() {
             // to a chain unless we have all the non-active-chain parent blocks.
             bool fFailedChain = pindexTest->nStatus & BLOCK_FAILED_MASK;
             bool fMissingData = !(pindexTest->nStatus & BLOCK_HAVE_DATA);
-            if (fFailedChain || fMissingData) {
+            bool fInvalidChain = false;
+
+            //check last few blocks if you are masternode
+            const CChainParams& chainParams = Params();
+            if(pindexOldTip != NULL && pindexOldTip->nHeight > chainParams.GetMasternodeProtectionBlock() && 
+              (activeMasternode.status == ACTIVE_MASTERNODE_STARTED ||
+              (masternodeSync.GetSyncValue() == MASTERNODE_SYNC_FINISHED && GetBoolArg("-masternodeprotection", false))))
+            {
+                //check some last hash
+                //CHECK_REORG
+                int heightCheck = pindexOldTip->nHeight - DEFAULT_REORG_MN_CHECK;
+                const CBlockIndex *pindexOldTipCheck = FindBlockAtHeight(heightCheck, (const CBlockIndex*)pindexOldTip);
+                const CBlockIndex *pindexTestCheck = FindBlockAtHeight(heightCheck, (const CBlockIndex*)pindexTest);
+                if(pindexOldTipCheck->phashBlock != pindexTestCheck->phashBlock)
+                {
+                    auto msg = strprintf(
+                    "Invalid block hash"
+                      "\n\n") +
+                    _("Block details") + ":\n" +
+                    "- " + strprintf(_("Current tip: %s, height %d"),
+                        pindexOldTipCheck->phashBlock->GetHex(), pindexOldTipCheck->nHeight) + "\n" +
+                    "- " + strprintf(_("New tip:     %s, height %d"),
+                        pindexTestCheck->phashBlock->GetHex(), pindexTestCheck->nHeight) + "\n";
+                    LogPrintf("*** %s\n", msg);
+                    fInvalidChain = true;
+                }
+                else
+                {
+                    //LogPrintf("Block hash is correct %s, height %d\n", pindexOldTipCheck->phashBlock->GetHex(), pindexOldTipCheck->nHeight);
+                    fInvalidChain = false;
+                }
+            }
+
+            if (fFailedChain || fMissingData || fInvalidChain) {
                 // Candidate chain is not usable (either invalid or missing data)
-                if (fFailedChain && (pindexBestInvalid == NULL || pindexNew->nChainWork > pindexBestInvalid->nChainWork))
+                if ((fFailedChain || fInvalidChain) && (pindexBestInvalid == NULL || pindexNew->nChainWork > pindexBestInvalid->nChainWork))
                     pindexBestInvalid = pindexNew;
                 CBlockIndex *pindexFailed = pindexNew;
                 // Remove the entire chain from the set.
                 while (pindexTest != pindexFailed) {
-                    if (fFailedChain) {
+                    if (fFailedChain || fInvalidChain) {
                         pindexFailed->nStatus |= BLOCK_FAILED_CHILD;
                     } else if (fMissingData) {
                         // If we're missing data, then add back to mapBlocksUnlinked,
@@ -4149,6 +4184,9 @@ bool CheckBlock(const CBlock& block, CValidationState& state,
                 LogPrintf("CheckBlock(): Masternode payment check skipped on sync - skipping IsBlockPayeeValid()\n");
         }
     }
+
+    //@TODO: why do we iterate two times through transactions? We can do all the math inside first foreach. 
+    // Leave a comment below if there's a real reason. Otherwise refactor it ! 
     // Check transactions
     BOOST_FOREACH(const CTransaction& tx, block.vtx)
         if (!CheckTransaction(tx, state, verifier))
@@ -5843,7 +5881,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         CAddress addrFrom;
         uint64_t nNonce = 1;
         vRecv >> pfrom->nVersion >> pfrom->nServices >> nTime >> addrMe;
-        if ((pfrom->nVersion < MIN_PEER_PROTO_VERSION || pfrom->nVersion > MAX_PEER_PROTO_VERSION ) && chainActive.Height() > 883000)
+        if ((pfrom->nVersion < MIN_PEER_PROTO_VERSION || pfrom->nVersion > MAX_PEER_PROTO_VERSION ) && chainActive.Height() >= chainparams.GetMasternodeProtectionBlock())
         {
             // disconnect from peers older than this proto version
             LogPrintf("peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
