@@ -70,6 +70,28 @@ addnode=51.15.96.180
 ```
 You can add more nodes from this list https://blocks.getbze.com/network  
 
+## config file with insight features
+```
+server=1
+txindex=1
+addressindex=1
+timestampindex=1
+spentindex=1
+zmqpubrawtx=tcp://127.0.0.1:28332
+zmqpubhashblock=tcp://127.0.0.1:28332
+rpcallowip=127.0.0.1
+rpcuser=USER
+rpcpassword=STRONG_PASSWORD_DO_NOT_FORGET_TO_CHANGE_THIS
+uacomment=bitcore
+showmetrics=0
+externalip=127.0.0.1:1990
+rpcbind=127.0.0.1:1980
+rpcport=1980
+bind=127.0.0.1:1990
+experimentalfeatures=1
+insightexplorer=1
+```
+
 Security Warnings
 -----------------
 
