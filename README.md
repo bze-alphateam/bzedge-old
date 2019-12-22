@@ -129,7 +129,7 @@ su [YOUR_USERNAME]
 cd ~
 
 #download setup script
-wget https://raw.githubusercontent.com/zzzpotato/BZE-Scripts/master/setup-masternode.sh
+wget https://raw.githubusercontent.com/bze-alphateam/BZE-Scripts/master/setup-masternode.sh
 #make the script executable
 sudo chmod +x setup-masternode.sh
 
