@@ -154,7 +154,7 @@ Using [ModernWallet](https://snowgem.org/resources/modern-wallet) you have an ea
 Go ahead and install it if you haven't already.\
 After the control wallet is synced and ready to be used create a *new BZE address* and send exactly 250,000 BZE to it.
 The resulting transaction will be your MN *TxID* - copy it and keep it safe in a text editor.
-Wait for the transaction to reach 10 confirmations.\
+Wait for the transaction to reach 15 confirmations.\
 Access "Masternodes" section in ModernWallet and use the details provided by the script to start your MN. 
 
 
