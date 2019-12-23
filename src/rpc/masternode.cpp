@@ -263,25 +263,18 @@ UniValue startalias(const UniValue& params, bool fHelp)
         
     for (auto mne: mnEntries) {
         if (mne->getAlias() == strAlias) {
-            std::string strError;
-            CMasternodeBroadcast mnb;
-
-            fSuccess = CMasternodeBroadcast::Create(mne->getIp(), mne->getPrivKey(), mne->getTxHash(), mne->getOutputIndex(), strError, mnb);
-
-            if (fSuccess) {
-                mnodeman.UpdateMasternodeList(mnb);
-                mnb.Relay();
-            }
+            fSuccess = activeMasternode.Register(mne->ip, mne->privKey, mne->txHash, mne->outputIndex, strErr);
             break;
         }
     }
+
+    UniValue obj(UniValue::VOBJ);
     if (fSuccess) {
-        UniValue obj(UniValue::VOBJ);
         obj.push_back(Pair("result", "Successfully started alias"));
-        return obj;
     } else {
-        throw runtime_error("Failed to start alias\n");
+        obj.push_back(Pair("error", strErr));
     }
+    return obj;
 }
 
 UniValue getmasternodecount (const UniValue& params, bool fHelp)
