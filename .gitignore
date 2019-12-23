@@ -112,3 +112,5 @@ wallet-utility
 
 contrib/debian/files
 contrib/debian/substvars
+
+binaries
