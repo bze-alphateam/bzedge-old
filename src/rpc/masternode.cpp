@@ -1092,7 +1092,10 @@ UniValue rewardactivemns(const UniValue& params, bool fHelp)
         substractFeeFromAmount = params[1].get_bool();
 
     CWalletTx wtx;
-    wtx.strFromAccount = ""; //always use default account since "accounts" feature is deactivated
+    if (params.size() > 2 && !params[2].isNull() && !params[2].get_str().empty())
+        wtx.mapValue["comment"] = params[2].get_str();
+    if (params.size() > 3 && !params[3].isNull() && !params[3].get_str().empty())
+        wtx.mapValue["to"]      = params[3].get_str();
 
     std::vector<pair<int, CMasternode> > vMasternodeRanks = mnodeman.GetMasternodeRanks(nHeight);
     std::set<CTxDestination> destinations;
