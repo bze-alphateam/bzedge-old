@@ -1023,6 +1023,132 @@ UniValue masternode(const UniValue& params, bool fHelp)
     return NullUniValue;
 }
 
+UniValue rewardactivemns(const UniValue& params, bool fHelp)
+{
+    std::string strFilter = "";
+
+    if (params.size() == 1) strFilter = params[0].get_str();
+
+    if (fHelp || (params.size() > 1))
+        throw runtime_error(
+            "rewardactivemns amount ( subtractfeefromamount \"comment\" \"comment-to\" ) \n"
+            "Send an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001\n"
+            "Be aware that the list of active MNs is stored locally and might not contain all the MNs in the network.\n"
+            "\nArguments:\n"
+            "1. \"amount\"                  (numeric, required) A json object with addresses and amounts\n"
+            "2. subtractfeefromamount       (boolean, optional, default=false) The fee will be deducted from the amount being sent.\n"
+            "                               Masternodes will receive less Zcash than you enter in the amount field.\n"
+            "3. \"comment\"                 (string, optional) A comment used to store what the transaction is for. \n"
+            "                               This is not part of the transaction, just kept in your wallet.\n"
+            "4. \"comment-to\"              (string, optional) A comment to store the name of the person or organization \n"
+            "                               to which you're sending the transaction. This is not part of the \n"
+            "                               transaction, just kept in your wallet.\n"
+            "\nResult:\n"
+            "{\n"
+            "    \"total_amount\": amount,                      (numeric) Total sent\n"
+            "    \"recipient_amount\": recipient_amount,        (numeric) Amount for each masternode in list.\n"
+            "    \"recipients_count\": count                    (numeric) Total number of recipients.\n"
+            "    \"txids\": [\n"
+            "       \"txid1\", (string) Transaction id \n"
+            "       \"txid2\", (string) Transaction id \n" 
+            "       ...\n"
+            "    ]\n"         
+            "},\n"
+            "\nExamples:\n"
+            + HelpExampleCli("rewardactivemns", "100")
+            + HelpExampleCli("rewardactivemns", "100 true \"Christmas presents\"")
+            + HelpExampleRpc("rewardactivemns", "100")
+            + HelpExampleRpc("rewardactivemns", "100 true \"Christmas presents\""));
+
+    UniValue ret(UniValue::VOBJ);
+
+    LOCK2(cs_main, pwalletMain->cs_wallet);
+    int nHeight;
+    {
+        CBlockIndex* pindex = chainActive.Tip();
+        if(!pindex) return 0;
+        nHeight = pindex->nHeight;
+    }
+
+    if (!masternodeSync.IsSynced())
+    {
+        std::string error = "Masternode is not synced, please wait. Current status: " + masternodeSync.GetSyncStatus();
+        ret.push_back(Pair("result", error));
+        return ret;
+    }
+
+    CAmount totalAmount = AmountFromValue(params[0]);
+
+    if (totalAmount <= 0) {
+        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
+    }
+
+    if (totalAmount > pwalletMain->GetBalance()) {
+        throw JSONRPCError(RPC_TYPE_ERROR, "Insufficient funds.");
+    }
+
+    bool substractFeeFromAmount = false;
+    if (params.size() > 1)
+        substractFeeFromAmount = params[1].get_bool();
+
+    CWalletTx wtx;
+    wtx.strFromAccount = ""; //always use default account since "accounts" feature is deactivated
+
+    std::vector<pair<int, CMasternode> > vMasternodeRanks = mnodeman.GetMasternodeRanks(nHeight);
+    std::set<CTxDestination> destinations;
+    //build destinations
+    BOOST_FOREACH (PAIRTYPE(int, CMasternode) & s, vMasternodeRanks) {
+        CMasternode* mn = mnodeman.Find(s.second.vin);
+        if (mn == NULL) {
+            continue;
+        }
+        //reward only enabled MNs and only once
+        if (mn->Status() != "ENABLED" || destinations.count(mn->pubKeyCollateralAddress.GetID())) {
+            continue;
+        }
+
+        destinations.insert(mn->pubKeyCollateralAddress.GetID());
+    }
+
+    //make sure there are enough destinations to continue
+    if (destinations.size() == 0) {
+        throw JSONRPCError(RPC_TYPE_ERROR, "No masternode available to reward");
+    }
+
+    //reward for each MN
+    CAmount recipientAmount = totalAmount/destinations.size(); 
+    std::vector<CRecipient> vecSend;
+    CAmount spentAmount = 0;
+    int recipientsCounter = 0;
+    for (auto dest : destinations) {
+        CScript scriptPubKey = GetScriptForDestination(dest);
+        CRecipient recipient = {scriptPubKey, recipientAmount, substractFeeFromAmount};
+        vecSend.push_back(recipient);
+        recipientsCounter++;
+        spentAmount += recipientAmount;
+    }
+
+    // Send
+    CReserveKey keyChange(pwalletMain);
+    CAmount nFeeRequired = 0;
+    int nChangePosRet = -1;
+    string strFailReason;
+    UniValue txes(UniValue::VARR);
+    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, nChangePosRet, strFailReason);
+    if (!fCreated)
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
+    if (!pwalletMain->CommitTransaction(wtx, keyChange))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Transaction commit failed");
+    txes.push_back(wtx.GetHash().GetHex());
+
+    ret.push_back(Pair("total_amount", spentAmount));
+    ret.push_back(Pair("recipient_amount", recipientAmount));
+    ret.push_back(Pair("recipients_count", recipientsCounter));
+    ret.push_back(Pair("txids", txes));
+
+    return ret;
+}
+
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         okSafeMode
   //  --------------------- ------------------------  -----------------------  ----------
@@ -1030,6 +1156,7 @@ static const CRPCCommand commands[] =
     { "masternode",         "getpoolinfo",          &getpoolinfo,         true  },
     { "masternode",         "masternode",           &masternode,          true  },
     { "masternode",         "listmasternodes",      &listmasternodes,     true  },
+    { "masternode",         "rewardactivemns",      &rewardactivemns,     true  },
     { "masternode",         "getmasternodecount",   &getmasternodecount,  true  },
     { "masternode",         "masternodeconnect",    &masternodeconnect,   true  },
     { "masternode",         "masternodecurrent",    &masternodecurrent,   true  },
