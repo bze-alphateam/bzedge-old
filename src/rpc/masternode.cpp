@@ -1141,8 +1141,8 @@ UniValue rewardactivemns(const UniValue& params, bool fHelp)
         throw JSONRPCError(RPC_WALLET_ERROR, "Transaction commit failed");
     txes.push_back(wtx.GetHash().GetHex());
 
-    ret.push_back(Pair("total_amount", spentAmount));
-    ret.push_back(Pair("recipient_amount", recipientAmount));
+    ret.push_back(Pair("total_amount", FormatMoney(spentAmount)));
+    ret.push_back(Pair("recipient_amount", FormatMoney(recipientAmount)));
     ret.push_back(Pair("recipients_count", recipientsCounter));
     ret.push_back(Pair("txids", txes));
 
