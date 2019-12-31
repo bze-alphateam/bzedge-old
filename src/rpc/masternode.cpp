@@ -669,7 +669,7 @@ UniValue listmasternodeconf (const UniValue& params, bool fHelp)
 
     LogPrintf("entries size : %d  \n", mnEntries.size());
 
-	for (auto mne: mnEntries){
+	for (auto mne: mnEntries) {
 		int nIndex;
 
 		if(!mne->castOutputIndex(nIndex))
