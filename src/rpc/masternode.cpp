@@ -685,7 +685,7 @@ UniValue listmasternodeconf (const UniValue& params, bool fHelp)
 			mne->getTxHash().find(strFilter) == string::npos &&
 			strStatus.find(strFilter) == string::npos) continue;
 
-		UniValue mnObj(UniValue::VARR);
+		UniValue mnObj(UniValue::VOBJ);
 		mnObj.push_back(Pair("alias", mne->getAlias()));
 		mnObj.push_back(Pair("address", mne->getIp()));
 		mnObj.push_back(Pair("privateKey", mne->getPrivKey()));
