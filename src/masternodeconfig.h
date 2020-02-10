@@ -30,7 +30,7 @@ public:
 
 	const std::string getOutputIndex() const;
 
-	bool castOutputIndex(int n) const;
+	bool castOutputIndex(int &n) const;
 
 	void setOutputIndex(std::string outputIndex) const;
 
