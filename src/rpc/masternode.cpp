@@ -1032,7 +1032,7 @@ UniValue rewardactivemns(const UniValue& params, bool fHelp)
     if (fHelp || (params.size() > 1))
         throw runtime_error(
             "rewardactivemns amount ( subtractfeefromamount \"comment\" \"comment-to\" ) \n"
-            "Send an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001\n"
+            "Send an amount to all active MNs. The amount is a real and is rounded to the nearest 0.00000001\n"
             "Be aware that the list of active MNs is stored locally and might not contain all the MNs in the network.\n"
             "\nArguments:\n"
             "1. \"amount\"                  (numeric, required) A json object with addresses and amounts\n"
