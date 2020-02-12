@@ -65,8 +65,8 @@ int Equihash<N,K>::InitialiseStateEx(eh_HashState& base_state, uint32_t block_ti
 {
     const CChainParams& chainParams = Params();
     
-    LogPrint("pow", "CURRENT bze_pers_start_blocktime = %d\n", chainParams.get_bze_pers_start());
-    LogPrint("pow", "CURRENT block_time = %d\n", block_time);
+    //LogPrint("pow", "CURRENT bze_pers_start_blocktime = %d\n", chainParams.get_bze_pers_start());
+    //LogPrint("pow", "CURRENT block_time = %d\n", block_time);
     uint32_t le_N = htole32(N);
     uint32_t le_K = htole32(K);
     unsigned char personalization[crypto_generichash_blake2b_PERSONALBYTES] = {};
@@ -75,18 +75,18 @@ int Equihash<N,K>::InitialiseStateEx(eh_HashState& base_state, uint32_t block_ti
 		if (block_time < chainParams.get_bze_pers_start())
 		{
 			memcpy(personalization, "BitcoinZ", 8);
-			LogPrint("pow", "PERSONALIZATION STRING: BitcoinZ\n");
+			//LogPrint("pow", "PERSONALIZATION STRING: BitcoinZ\n");
 		}
 		else
 		{
 			memcpy(personalization, "BZEZhash", 8);
-			LogPrint("pow", "PERSONALIZATION STRING: BZEZhash\n");
+			//LogPrint("pow", "PERSONALIZATION STRING: BZEZhash\n");
 		}
 	}        
     else
     {
 		memcpy(personalization, "ZcashPoW", 8);
-		LogPrint("pow", "PERSONALIZATION STRING: ZcashPoW\n");
+		//LogPrint("pow", "PERSONALIZATION STRING: ZcashPoW\n");
 	}   
     memcpy(personalization+8,  &le_N, 4);
     memcpy(personalization+12, &le_K, 4);
