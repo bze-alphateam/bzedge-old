@@ -257,7 +257,7 @@ bool CheckEquihashSolution(const CBlockHeader *pblock, const CChainParams& param
         default: return error("CheckEquihashSolution: Unsupported solution size of %d", nSolSize);
     }
 
-    LogPrint("pow", "selected n,k : %d, %d \n", n,k);
+    //LogPrint("pow", "selected n,k : %d, %d \n", n,k);
 
     // block time is more convenient to use than block height, we can read it from the block header
     uint32_t block_time = pblock->nTime;
