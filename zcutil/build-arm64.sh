@@ -110,3 +110,8 @@ HOST="$HOST" BUILD="$BUILD" NO_PROTON="$PROTON_ARG" "$MAKE" "$@" -C ./depends/ V
 ./autogen.sh
 CONFIG_SITE="$PWD/depends/$HOST/share/config.site" ./configure "$HARDENING_ARG" "$LCOV_ARG" "$TEST_ARG" "$MINING_ARG" "$PROTON_ARG" $CONFIGURE_FLAGS CXXFLAGS='-g'
 "$MAKE" "$@" V=1
+
+# strip debug symbols
+aarch64-linux-gnu-strip "$PWD/src/bzedged"
+aarch64-linux-gnu-strip "$PWD/src/bzedge-cli"
+aarch64-linux-gnu-strip "$PWD/src/bzedged-tx"
