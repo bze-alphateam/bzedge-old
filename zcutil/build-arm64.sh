@@ -114,4 +114,4 @@ CONFIG_SITE="$PWD/depends/$HOST/share/config.site" ./configure "$HARDENING_ARG" 
 # strip debug symbols
 aarch64-linux-gnu-strip "$PWD/src/bzedged"
 aarch64-linux-gnu-strip "$PWD/src/bzedge-cli"
-aarch64-linux-gnu-strip "$PWD/src/bzedged-tx"
+aarch64-linux-gnu-strip "$PWD/src/bzedge-tx"
