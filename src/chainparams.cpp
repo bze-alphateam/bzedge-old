@@ -155,7 +155,7 @@ public:
 
         // The best chain should have at least this much work.
         // consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000000000000004000");
-        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000000008d89d032d11f"); // chainwork of the last checkpoint
+        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000000008d9a03d79a68"); // chainwork of the last checkpoint
 
 
 
@@ -260,10 +260,11 @@ public:
 			( 165300, uint256S("0x000001f49a3c070be93770e8d7e84b281c159e367d56c809048d02441db1956c"))
 			( 444600, uint256S("0x0000181b00e928fac7c5841f04ab99038cedbd3776ff658df6eb6c841ccc2ea3"))
 			( 586000, uint256S("0x0000094cf923b3cccc179769b948b1cd091382a7ab19db2369ef8e66d0e49cfd"))
-            ( 868010, uint256S("0x00006ed38c012a59d3f17be569eb9da5c4147a3a9297ffd189b46c02d9d0ef4e")),
+            ( 868010, uint256S("0x00006ed38c012a59d3f17be569eb9da5c4147a3a9297ffd189b46c02d9d0ef4e"))
+            ( 1200000, uint256S("0x0000fddbdaa51d886f34bb7db2b49022a5f5f9e23307d3342373bac90070c363")),
 
-			1576073696,     // * UNIX timestamp of last checkpoint block
-			1913443,         // * total number of transactions between genesis and last checkpoint
+			1596365964,     // * UNIX timestamp of last checkpoint block
+			2519866,         // * total number of transactions between genesis and last checkpoint
 							//   (the tx=... number in the SetBestChain debug.log lines)
 			3000  // * estimated number of transactions per day after checkpoint
 							
