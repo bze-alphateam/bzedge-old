@@ -149,13 +149,23 @@ your_alias ${WANIP}:${PORT} ${masternodeprivkey} TxID Output_Index
 *your_alias*, *TxID* and *Output_Index* are the ones we will have to change. You'll find out more soon.
 
 ###### Control wallet
-Using [ModernWallet](https://snowgem.org/resources/modern-wallet) you have an easy and beautiful way of interacting with your MN.
+Using [Tent Desktop Wallet](https://tent.app/wallet) you have an easy and beautiful way of interacting with your MN.
 Go ahead and install it if you haven't already.\
 After the control wallet is synced and ready to be used create a *new BZE address* and send exactly 250,000 BZE to it.
 The resulting transaction will be your MN *TxID* - copy it and keep it safe in a text editor.
 Wait for the transaction to reach 15 confirmations.\
 Access "Masternodes" section in ModernWallet and use the details provided by the script to start your MN. 
 
+### MacOS
+In case you encounter 'missing readelf' issue install "binutils"
+```{r, engine='bash'}
+brew install binutils
+```
+If the issue persists create a symlink for "readelf" (it may be named "x86_64-elf-readelf") in /usr/local/bin from the original file located in /usr/local/Cellar
+Example: (it may be different depending on MacOS version:
+```{r, engine='bash'}
+/usr/local/Cellar/x86_64-elf-binutils/2.36.1/bin/x86_64-elf-readelf /usr/local/bin/x86_64-apple-darwin19.6.0-readelf
+```
 
 Security Warnings
 -----------------
