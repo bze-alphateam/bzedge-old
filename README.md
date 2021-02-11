@@ -1,6 +1,5 @@
 
 <img width="120" height="80" src="doc/imgs/logo.png">
-BZEdge Transylvanian Oak 2.0.3
 
 ### Checkout latest releases here: https://github.com/bze-alphateam/bzedge/releases
 
